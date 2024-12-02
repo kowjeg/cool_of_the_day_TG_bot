@@ -70,7 +70,7 @@ public class MyAmazingBot implements LongPollingSingleThreadUpdateConsumer {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
-                sendMessage(chatId, "Я тебя не понимаю");
+                sendMessage(chatId, BotMessages.UNKNOWN_COMMAND.format());
             }
         }
     }
