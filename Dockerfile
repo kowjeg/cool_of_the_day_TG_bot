@@ -1,6 +1,3 @@
-
-
-
 FROM openjdk:23-jdk-slim
 
 WORKDIR /app

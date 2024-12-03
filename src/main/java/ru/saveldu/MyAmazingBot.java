@@ -3,29 +3,36 @@ package ru.saveldu;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.message.Message;
+
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import org.telegram.telegrambots.meta.generics.TelegramClient;
+
 import ru.saveldu.enums.BotMessages;
 
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.Random;
 
-public class MyAmazingBot implements LongPollingSingleThreadUpdateConsumer {
-    private final String botName = System.getenv("BOT_NAME");
-    private final TelegramClient telegramClient;
+public class MyAmazingBot extends MultiSessionTelegramBot {
+
+
+    public static final String TELEGRAM_BOT_NAME = "testbot"; //TODO: добавь имя бота в кавычках
+    public static final String TELEGRAM_BOT_TOKEN = "7116585849:AAElte4B1YxlQi4JJj2AudRDfzU0_cdqnAE"; //TODO: добавь токен бота в кавычках
+
     private Connection connection;
 
-    public MyAmazingBot(String botToken) {
-        telegramClient = new OkHttpTelegramClient(botToken);
+
+
+    public MyAmazingBot() {
+        super(TELEGRAM_BOT_NAME, TELEGRAM_BOT_TOKEN);
         initializeDatabaseConnection();
     }
 
+
     private void initializeDatabaseConnection() {
         try {
-            Thread.sleep(2000);
+            Thread.sleep(4000);
 
             String connectString = "jdbc:mysql://" + System.getenv("HOST_NAME") + ":"
                     +  System.getenv("DB_PORT") + "/" + System.getenv("DB_NAME");
@@ -52,7 +59,7 @@ public class MyAmazingBot implements LongPollingSingleThreadUpdateConsumer {
     }
 
     @Override
-    public void consume(Update update) {
+    public void onUpdateEventReceived(Update update) {
         if (update.hasMessage() && update.getMessage().hasText()) {
             Message message = update.getMessage();
             String messageText = message.getText();
@@ -73,6 +80,10 @@ public class MyAmazingBot implements LongPollingSingleThreadUpdateConsumer {
                 sendMessage(chatId, BotMessages.UNKNOWN_COMMAND.format());
             }
         }
+        //TODO: основной функционал бота будем писать здесь
+        String text = loadMessage("main");
+        sendTextMessage(text);
+
     }
 
     private void showStats(long chatId) throws SQLException {
@@ -185,7 +196,7 @@ public class MyAmazingBot implements LongPollingSingleThreadUpdateConsumer {
                 .text(text)
                 .build();
         try {
-            telegramClient.execute(message);
+            this.execute(message);
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
