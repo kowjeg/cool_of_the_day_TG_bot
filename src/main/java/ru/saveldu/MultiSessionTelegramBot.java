@@ -8,6 +8,7 @@ import org.telegram.telegrambots.meta.api.methods.GetUserProfilePhotos;
 import org.telegram.telegrambots.meta.api.methods.commands.DeleteMyCommands;
 import org.telegram.telegrambots.meta.api.methods.commands.GetMyCommands;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
+import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChat;
 import org.telegram.telegrambots.meta.api.methods.menubutton.SetChatMenuButton;
 import org.telegram.telegrambots.meta.api.methods.reactions.SetMessageReaction;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -69,6 +70,43 @@ public class MultiSessionTelegramBot extends TelegramLongPollingBot {
     /**
      * Метод возвращает ID текущего Telegram-чата
      */
+
+    private String getUserNameById(long userId) {
+        try {
+            GetChat getChat = new GetChat();
+            getChat.setChatId(userId);
+            Chat chat = execute(getChat);
+
+            return chat.getUserName();
+        } catch (TelegramApiException e) {
+            System.out.println("Пользователь вышел из чата.");
+            return null;
+        }
+    }
+
+    public String formatUserMention(String usName, long userId) {
+        // Проверяем, есть ли у победителя юзернейм
+        String userName = getUserNameById(userId);
+        if (userName != null) {
+
+            return "@" + userName;
+        }
+
+        return "<a href=\"tg://user?id=" + userId + "\">" + usName + "</a>";
+    }
+
+    public void sendMessage(long chatId, String text) {
+        SendMessage message = SendMessage.builder()
+                .chatId(chatId)
+                .text(text)
+                .parseMode("HTML")
+                .build();
+        try {
+            this.execute(message);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
     public Long getCurrentChatId() {
         if (updateEvent.get().hasMessage()) {
             return updateEvent.get().getMessage().getFrom().getId();

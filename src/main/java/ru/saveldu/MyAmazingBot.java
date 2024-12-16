@@ -1,30 +1,36 @@
 package ru.saveldu;
 
-import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChat;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import org.telegram.telegrambots.meta.api.objects.Chat;
+import ru.saveldu.commands.*;
 import ru.saveldu.db.DatabaseService;
 import ru.saveldu.enums.BotMessages;
 
 import java.sql.*;
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.Random;
 
 public class MyAmazingBot extends MultiSessionTelegramBot {
 
-    public static final String TELEGRAM_BOT_NAME = "testbot"; //TODO: добавь имя бота в кавычках
-    public static final String TELEGRAM_BOT_TOKEN = System.getenv("BOT_TOKEN"); //TODO: добавь токен бота в кавычках
+    public static final String TELEGRAM_BOT_NAME = "test";
+    public static final String TELEGRAM_BOT_TOKEN = System.getenv("BOT_TOKEN");
     private Connection connection;
     private DatabaseService db;
+    private HashMap<String, CommandHandler> commands = new HashMap<>();
 
     public MyAmazingBot() {
         super(TELEGRAM_BOT_NAME, TELEGRAM_BOT_TOKEN);
-
         db = new DatabaseService();
         connection = db.getConnection();
+        initializeCommands();
+    }
+
+    private void initializeCommands() {
+        commands.put("/play", new PlayCombGameCommand(connection, this));
+        commands.put("/register", new RegistrateCommand(connection, this));
+        commands.put("/stats", new ShowStatsCommand(connection, this));
+        commands.put("/cooloftheday", new ChooseCoolOfTheDayCommand(connection, this));
     }
 
     @Override
@@ -33,233 +39,19 @@ public class MyAmazingBot extends MultiSessionTelegramBot {
             Message message = update.getMessage();
             String messageText = message.getText();
             long chatId = message.getChatId();
-            long userId = message.getFrom().getId();
 
             try {
                 db.ensureConnection();
-                if (messageText.startsWith("/register")) {
-                    registerUser(chatId, userId, message.getFrom().getFirstName());
-                } else if (messageText.startsWith("/cooloftheday")) {
-                    chooseCoolOfTheDay(chatId, update);
-                } else if (messageText.startsWith("/stats")) {
-                    showStats(chatId);
-                } else if (messageText.startsWith("/play")) {
-                    playCombGame(chatId, userId, message.getFrom().getFirstName());
-                }
+
+                String command = messageText.split("[ @]")[0];
+                CommandHandler handler = commands.get(command);
+                handler.execute(update);
             } catch (Exception e) {
                 e.printStackTrace();
                 sendMessage(chatId, BotMessages.UNKNOWN_COMMAND.format());
             }
         }
-
         String text = loadMessage("main");
         sendTextMessage(text);
-
-    }
-
-    private void playCombGame(long chatId, long userId, String firstName) throws SQLException {
-        LocalDate today = LocalDate.now();
-
-        String checkSql = "SELECT comb_size, last_played_date FROM users WHERE chat_id = ? AND user_id = ?";
-        PreparedStatement checkStatement = connection.prepareStatement(checkSql);
-        checkStatement.setLong(1, chatId);
-        checkStatement.setLong(2, userId);
-        ResultSet resultSet = checkStatement.executeQuery();
-        if (!resultSet.next()) {
-            String registerSql = "INSERT INTO users (chat_id, user_id, user_name, comb_size, last_played_date) " +
-                    "VALUES (?, ?, ?, 0, NULL)";
-            try (PreparedStatement registerStmt = connection.prepareStatement(registerSql)) {
-                registerStmt.setLong(1, chatId);
-                registerStmt.setLong(2, userId);
-                registerStmt.setString(3, firstName);
-                registerStmt.executeUpdate();
-            }
-            playCombGame(chatId, userId, firstName); //
-            return;
-        } else {
-            LocalDate lastPlayed = resultSet.getDate("last_played_date") != null ? resultSet.getDate("last_played_date").toLocalDate() : null;
-            if (lastPlayed != null && lastPlayed.equals(today)) {
-
-                PreparedStatement combSizeStatement = connection.prepareStatement("select comb_size from users where user_id = ?");
-                combSizeStatement.setLong(1, userId);
-                ResultSet resultSetCombSize = combSizeStatement.executeQuery();
-                resultSetCombSize.next();
-                sendMessage(chatId, ", ты сегодня уже играл, следующая попытка увеличить расческу завтра. Сейчас её размер: "
-                        + resultSetCombSize.getInt(1));
-                return;
-            }
-            int currentCombSize = resultSet.getInt("comb_size");
-            Random rand = new Random();
-            int newCombSize = currentCombSize + (rand.nextInt(11) - 6);
-
-            String updateSql = "UPDATE users SET comb_size = ?, last_played_date = ? WHERE chat_id = ? AND user_id = ?";
-            try (PreparedStatement updateStmt = connection.prepareStatement(updateSql)) {
-
-                updateStmt.setLong(1, newCombSize);
-                updateStmt.setDate(2, Date.valueOf(today));
-                updateStmt.setLong(3, chatId);
-                updateStmt.setLong(4, userId);
-                updateStmt.executeUpdate();
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-            sendMessage(chatId, "длина твоей расчески: " + newCombSize);
-
-        }
-    }
-
-    private void showStats(long chatId) throws SQLException {
-        LocalDate today = LocalDate.now();
-        int currentYear = today.getYear();
-
-        String statsSql = "SELECT user_name, count FROM stats WHERE chat_id = ? AND year = ? ORDER BY count DESC";
-        try (PreparedStatement statsStmt = connection.prepareStatement(statsSql)) {
-            statsStmt.setLong(1, chatId);
-            statsStmt.setInt(2, currentYear);
-            ResultSet rs = statsStmt.executeQuery();
-
-            if (rs.next()) {
-                StringBuilder statsMessage = new StringBuilder(BotMessages.STATS_HEADER.format(String.valueOf(currentYear))).append("\n");
-
-                do {
-                    String userName = rs.getString("user_name");
-                    int count = rs.getInt("count");
-                    statsMessage.append(userName).append(" - ").append(count).append(" раз\n");
-                } while (rs.next());
-
-                sendMessage(chatId, statsMessage.toString());
-            } else {
-                sendMessage(chatId, BotMessages.NO_STATS.format());
-            }
-        }
-    }
-
-
-    private void registerUser(long chatId, long userId, String userName) throws SQLException {
-
-        String sqlCheckAlreadyRegistered = "SELECT user_id FROM users WHERE user_id = ? and chat_id = ?";
-        try (PreparedStatement checkAlreadyRegisteredStatement = connection.prepareStatement(sqlCheckAlreadyRegistered);) {
-            checkAlreadyRegisteredStatement.setLong(1, userId);
-            checkAlreadyRegisteredStatement.setLong(2, chatId);
-            ResultSet rs = checkAlreadyRegisteredStatement.executeQuery();
-            if (rs.next()) {
-                sendMessage(chatId, formatUserMention(userName, userId) +", ты уже зарегистрирован");
-                return;
-            }
-
-        }
-
-
-        String sql = "INSERT INTO users (chat_id, user_id, user_name) VALUES (?, ?, ?) " +
-                "ON DUPLICATE KEY UPDATE user_name = VALUES(user_name)";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setLong(1, chatId);
-            stmt.setLong(2, userId);
-            stmt.setString(3, userName);
-            stmt.executeUpdate();
-            sendMessage(chatId, BotMessages.REGISTER_SUCCESS.format(userName));
-        }
-    }
-
-    private void chooseCoolOfTheDay(long chatId, Update update) throws SQLException {
-        LocalDate today = LocalDate.now();
-
-        String checkSql = "SELECT user_name FROM cool_of_the_day WHERE chat_id = ? AND date = ?";
-        try (PreparedStatement checkStmt = connection.prepareStatement(checkSql)) {
-            checkStmt.setLong(1, chatId);
-            checkStmt.setDate(2, Date.valueOf(today));
-            ResultSet rs = checkStmt.executeQuery();
-            if (rs.next()) {
-                sendMessage(chatId, BotMessages.COOL_DAY_ALREADY_CHOSEN.format(rs.getString("user_name")));
-                return;
-            }
-        }
-
-        String selectSql = "SELECT user_id, user_name FROM users WHERE chat_id = ?";
-        try (PreparedStatement selectStmt = connection.prepareStatement(selectSql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
-            selectStmt.setLong(1, chatId);
-            ResultSet rs = selectStmt.executeQuery();
-
-            Random random = new Random();
-            if (rs.next()) {
-                rs.last();
-                int rowCount = rs.getRow();
-                int randomRow = random.nextInt(rowCount) + 1;
-                rs.absolute(randomRow);
-
-                long userId = rs.getLong("user_id");
-                String userName = rs.getString("user_name");
-
-                String insertSql = "INSERT INTO cool_of_the_day (chat_id, user_id, user_name, date) VALUES (?, ?, ?, ?)";
-                try (PreparedStatement insertStmt = connection.prepareStatement(insertSql)) {
-                    insertStmt.setLong(1, chatId);
-                    insertStmt.setLong(2, userId);
-                    insertStmt.setString(3, userName);
-                    insertStmt.setDate(4, Date.valueOf(today));
-                    insertStmt.executeUpdate();
-                }
-
-                String updateStatsSql = "INSERT INTO stats (chat_id, user_id, user_name, year, count) " +
-                        "VALUES (?, ?, ?, ?, 1) " +
-                        "ON DUPLICATE KEY UPDATE count = count + 1";
-                try (PreparedStatement statsStmt = connection.prepareStatement(updateStatsSql)) {
-                    statsStmt.setLong(1, chatId);
-                    statsStmt.setLong(2, userId);
-                    statsStmt.setString(3, userName);
-                    statsStmt.setInt(4, today.getYear());
-                    statsStmt.executeUpdate();
-                }
-
-                sendMessage(chatId, BotMessages.ANALYZING.format());
-                Thread.sleep(700);
-                sendMessage(chatId, BotMessages.SELECTING.format());
-                Thread.sleep(700);
-                sendMessage(chatId, BotMessages.CALIBRATING.format());
-                Thread.sleep(700);
-                String message = BotMessages.COOL_DAY_RESULT.format(formatUserMention(userName, userId));
-                sendMessage(chatId, message);
-            } else {
-                sendMessage(chatId, BotMessages.NO_REGISTERED_USERS.format());
-            }
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private String getUserNameById(long userId) {
-        try {
-            GetChat getChat = new GetChat();
-            getChat.setChatId(userId);
-            Chat chat = execute(getChat);
-
-            return chat.getUserName();
-        } catch (TelegramApiException e) {
-            System.out.println("Пользователь вышел из чата.");
-            return null;
-        }
-    }
-
-    private String formatUserMention(String usName, long userId) {
-        // Проверяем, есть ли у победителя юзернейм
-        String userName = getUserNameById(userId);
-        if (userName != null) {
-
-            return "@" + userName;
-        }
-
-        return "<a href=\"tg://user?id=" + userId + "\">" + usName + "</a>";
-    }
-
-    private void sendMessage(long chatId, String text) {
-        SendMessage message = SendMessage.builder()
-                .chatId(chatId)
-                .text(text)
-                .parseMode("HTML")
-                .build();
-        try {
-            this.execute(message);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
     }
 }
