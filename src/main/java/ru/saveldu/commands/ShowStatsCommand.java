@@ -3,10 +3,8 @@ package ru.saveldu.commands;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.saveldu.enums.BotMessages;
 import ru.saveldu.MultiSessionTelegramBot;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+
+import java.sql.*;
 import java.time.LocalDate;
 
 public class ShowStatsCommand implements CommandHandler{
@@ -32,13 +30,18 @@ public class ShowStatsCommand implements CommandHandler{
 
             if (rs.next()) {
                 StringBuilder statsMessage = new StringBuilder(BotMessages.STATS_HEADER.format(String.valueOf(currentYear))).append("\n");
+                String partCountSql = "SELECT count(*) FROM users";
+                Statement partCountStmt = connection.createStatement();
+                ResultSet rsCountSet = partCountStmt.executeQuery(partCountSql);
 
+                rsCountSet.next();
+                int participants = rsCountSet.getInt(1);
                 do {
                     String userName = rs.getString("user_name");
                     int count = rs.getInt("count");
                     statsMessage.append(userName).append(" - ").append(count).append(" раз\n");
                 } while (rs.next());
-
+                statsMessage.append("\nВсего фолофанов: " + participants);
                 bot.sendMessage(chatId, statsMessage.toString());
             } else {
                 bot.sendMessage(chatId, BotMessages.NO_STATS.format());

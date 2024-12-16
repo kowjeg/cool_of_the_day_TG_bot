@@ -29,7 +29,7 @@ public class RegistrationCommand implements CommandHandler{
             checkAlreadyRegisteredStatement.setLong(2, chatId);
             ResultSet rs = checkAlreadyRegisteredStatement.executeQuery();
             if (rs.next()) {
-                bot.sendMessage(chatId, bot.formatUserMention(userName, userId) +", ты уже зарегистрирован");
+                bot.sendMessage(chatId, bot.formatUserMention(userName, userId) + ", ты уже зарегистрирован");
                 return;
             }
 
