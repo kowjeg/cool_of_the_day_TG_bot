@@ -22,7 +22,7 @@ public class RegistrationCommand implements CommandHandler{
 
         long chatId = update.getMessage().getChatId();
         long userId = update.getMessage().getFrom().getId();
-        String userName = update.getMessage().getFrom().getUserName();
+        String userName = update.getMessage().getFrom().getFirstName();
         String sqlCheckAlreadyRegistered = "SELECT user_id FROM users WHERE user_id = ? and chat_id = ?";
         try (PreparedStatement checkAlreadyRegisteredStatement = connection.prepareStatement(sqlCheckAlreadyRegistered);) {
             checkAlreadyRegisteredStatement.setLong(1, userId);
