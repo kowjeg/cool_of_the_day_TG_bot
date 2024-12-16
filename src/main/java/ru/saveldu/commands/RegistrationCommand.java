@@ -8,12 +8,12 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class RegistrateCommand implements CommandHandler{
+public class RegistrationCommand implements CommandHandler{
 
     private final Connection connection;
     private final MultiSessionTelegramBot bot;
 
-    public RegistrateCommand(Connection connection, MultiSessionTelegramBot bot) {
+    public RegistrationCommand(Connection connection, MultiSessionTelegramBot bot) {
         this.connection = connection;
         this.bot = bot;
     }

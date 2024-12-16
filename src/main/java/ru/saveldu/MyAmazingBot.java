@@ -7,9 +7,7 @@ import ru.saveldu.db.DatabaseService;
 import ru.saveldu.enums.BotMessages;
 
 import java.sql.*;
-import java.time.LocalDate;
 import java.util.HashMap;
-import java.util.Random;
 
 public class MyAmazingBot extends MultiSessionTelegramBot {
 
@@ -28,7 +26,7 @@ public class MyAmazingBot extends MultiSessionTelegramBot {
 
     private void initializeCommands() {
         commands.put("/play", new PlayCombGameCommand(connection, this));
-        commands.put("/register", new RegistrateCommand(connection, this));
+        commands.put("/register", new RegistrationCommand(connection, this));
         commands.put("/stats", new ShowStatsCommand(connection, this));
         commands.put("/cooloftheday", new ChooseCoolOfTheDayCommand(connection, this));
     }
