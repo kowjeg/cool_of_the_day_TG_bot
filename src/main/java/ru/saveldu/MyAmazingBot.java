@@ -6,53 +6,25 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.api.objects.Chat;
+import ru.saveldu.db.DatabaseService;
 import ru.saveldu.enums.BotMessages;
+
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.Random;
 
 public class MyAmazingBot extends MultiSessionTelegramBot {
 
-
     public static final String TELEGRAM_BOT_NAME = "testbot"; //TODO: добавь имя бота в кавычках
     public static final String TELEGRAM_BOT_TOKEN = System.getenv("BOT_TOKEN"); //TODO: добавь токен бота в кавычках
-
     private Connection connection;
-
-
+    private DatabaseService db;
 
     public MyAmazingBot() {
         super(TELEGRAM_BOT_NAME, TELEGRAM_BOT_TOKEN);
-        initializeDatabaseConnection();
-    }
 
-
-    private void initializeDatabaseConnection() {
-        try {
-            Thread.sleep(4000);
-
-            String connectString = "jdbc:mysql://" + System.getenv("HOST_NAME") + ":"
-                    +  System.getenv("DB_PORT") + "/" + System.getenv("DB_NAME");
-            connection = DriverManager.getConnection(
-                    connectString,
-                    System.getenv("DB_USER"),
-                    System.getenv("DB_PASSWORD")
-            );
-
-        } catch (SQLException | InterruptedException e) {
-//            System.out.println("test");
-            throw new RuntimeException("Ошибка подключения к базе данных", e);
-        }
-    }
-
-    private void ensureConnection() {
-        try {
-            if (connection == null || connection.isClosed() || !connection.isValid(2)) {
-                initializeDatabaseConnection();
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Не удалось восстановить соединение с базой данных", e);
-        }
+        db = new DatabaseService();
+        connection = db.getConnection();
     }
 
     @Override
@@ -64,7 +36,7 @@ public class MyAmazingBot extends MultiSessionTelegramBot {
             long userId = message.getFrom().getId();
 
             try {
-                ensureConnection();
+                db.ensureConnection();
                 if (messageText.startsWith("/register")) {
                     registerUser(chatId, userId, message.getFrom().getFirstName());
                 } else if (messageText.startsWith("/cooloftheday")) {
@@ -104,9 +76,9 @@ public class MyAmazingBot extends MultiSessionTelegramBot {
             }
             playCombGame(chatId, userId, firstName); //
             return;
-        }else  {
-            LocalDate lastPlayed = resultSet.getDate("last_played_date")!= null ? resultSet.getDate("last_played_date").toLocalDate() : null;
-            if (lastPlayed!= null && lastPlayed.equals(today)) {
+        } else {
+            LocalDate lastPlayed = resultSet.getDate("last_played_date") != null ? resultSet.getDate("last_played_date").toLocalDate() : null;
+            if (lastPlayed != null && lastPlayed.equals(today)) {
 
                 PreparedStatement combSizeStatement = connection.prepareStatement("select comb_size from users where user_id = ?");
                 combSizeStatement.setLong(1, userId);
@@ -131,7 +103,7 @@ public class MyAmazingBot extends MultiSessionTelegramBot {
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
-            sendMessage(chatId,  "длина твоей расчески: " + newCombSize);
+            sendMessage(chatId, "длина твоей расчески: " + newCombSize);
 
         }
     }
@@ -147,7 +119,7 @@ public class MyAmazingBot extends MultiSessionTelegramBot {
             ResultSet rs = statsStmt.executeQuery();
 
             if (rs.next()) {
-                StringBuilder statsMessage = new StringBuilder(BotMessages.STATS_HEADER.format(currentYear)).append("\n");
+                StringBuilder statsMessage = new StringBuilder(BotMessages.STATS_HEADER.format(String.valueOf(currentYear))).append("\n");
 
                 do {
                     String userName = rs.getString("user_name");
@@ -164,6 +136,20 @@ public class MyAmazingBot extends MultiSessionTelegramBot {
 
 
     private void registerUser(long chatId, long userId, String userName) throws SQLException {
+
+        String sqlCheckAlreadyRegistered = "SELECT user_id FROM users WHERE user_id = ? and chat_id = ?";
+        try (PreparedStatement checkAlreadyRegisteredStatement = connection.prepareStatement(sqlCheckAlreadyRegistered);) {
+            checkAlreadyRegisteredStatement.setLong(1, userId);
+            checkAlreadyRegisteredStatement.setLong(2, chatId);
+            ResultSet rs = checkAlreadyRegisteredStatement.executeQuery();
+            if (rs.next()) {
+                sendMessage(chatId, formatUserMention(userName, userId) +", ты уже зарегистрирован");
+                return;
+            }
+
+        }
+
+
         String sql = "INSERT INTO users (chat_id, user_id, user_name) VALUES (?, ?, ?) " +
                 "ON DUPLICATE KEY UPDATE user_name = VALUES(user_name)";
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -239,7 +225,8 @@ public class MyAmazingBot extends MultiSessionTelegramBot {
             throw new RuntimeException(e);
         }
     }
-    public String getUserNameById(long userId) {
+
+    private String getUserNameById(long userId) {
         try {
             GetChat getChat = new GetChat();
             getChat.setChatId(userId);
@@ -251,6 +238,7 @@ public class MyAmazingBot extends MultiSessionTelegramBot {
             return null;
         }
     }
+
     private String formatUserMention(String usName, long userId) {
         // Проверяем, есть ли у победителя юзернейм
         String userName = getUserNameById(userId);
