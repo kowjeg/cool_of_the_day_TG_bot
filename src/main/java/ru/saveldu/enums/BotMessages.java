@@ -11,7 +11,8 @@ public enum BotMessages {
     ANALYZING("Анализирую фолочат за сегодня..."),
     SELECTING("Выбираю лучшие шутки..."),
     CALIBRATING("Калибрую результаты..."),
-    COOL_DAY_RESULT("Сегодняшний фолокрасавчик дня: \uD83E\uDEAE {0} \uD83E\uDEAE"),
+
+    COOL_DAY_RESULT("{0}, ты фолокрасавчик дня!"),
     UNKNOWN_COMMAND("Я тебя не понимаю");
 
     private final String template;
