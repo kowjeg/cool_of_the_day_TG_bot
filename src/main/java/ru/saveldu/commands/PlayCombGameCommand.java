@@ -24,7 +24,7 @@ public class PlayCombGameCommand implements CommandHandler{
         long chatId = update.getMessage().getChatId();
         long userId = update.getMessage().getFrom().getId();
         LocalDate today = LocalDate.now();
-        String userName = update.getMessage().getFrom().getUserName();
+        String userName = update.getMessage().getFrom().getFirstName();
 
         String checkSql = "SELECT comb_size, last_played_date FROM users WHERE chat_id = ? AND user_id = ?";
         PreparedStatement checkStatement = connection.prepareStatement(checkSql);
