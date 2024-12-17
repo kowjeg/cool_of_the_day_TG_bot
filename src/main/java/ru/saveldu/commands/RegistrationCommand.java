@@ -20,16 +20,18 @@ public class RegistrationCommand implements CommandHandler{
     @Override
     public void execute(Update update) throws SQLException {
 
+
         long chatId = update.getMessage().getChatId();
         long userId = update.getMessage().getFrom().getId();
         String userName = update.getMessage().getFrom().getFirstName();
+        String userNameToString = bot.formatUserMention(userName, userId);
         String sqlCheckAlreadyRegistered = "SELECT user_id FROM users WHERE user_id = ? and chat_id = ?";
         try (PreparedStatement checkAlreadyRegisteredStatement = connection.prepareStatement(sqlCheckAlreadyRegistered);) {
             checkAlreadyRegisteredStatement.setLong(1, userId);
             checkAlreadyRegisteredStatement.setLong(2, chatId);
             ResultSet rs = checkAlreadyRegisteredStatement.executeQuery();
             if (rs.next()) {
-                bot.sendMessage(chatId, bot.formatUserMention(userName, userId) + ", ты уже зарегистрирован");
+                bot.sendMessage(chatId, BotMessages.ALREADY_REGISTERED.format(userNameToString));
                 return;
             }
 

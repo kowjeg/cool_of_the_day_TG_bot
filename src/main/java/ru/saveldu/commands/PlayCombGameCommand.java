@@ -19,12 +19,14 @@ public class PlayCombGameCommand implements CommandHandler{
         this.connection = connection;
         this.bot = bot;
     }
+
     @Override
     public void execute(Update update) throws SQLException {
         long chatId = update.getMessage().getChatId();
         long userId = update.getMessage().getFrom().getId();
         LocalDate today = LocalDate.now();
         String userName = update.getMessage().getFrom().getFirstName();
+        String userNameToString = bot.formatUserMention(userName, userId);
 
         String checkSql = "SELECT comb_size, last_played_date FROM users WHERE chat_id = ? AND user_id = ?";
         PreparedStatement checkStatement = connection.prepareStatement(checkSql);
@@ -50,8 +52,9 @@ public class PlayCombGameCommand implements CommandHandler{
                 combSizeStatement.setLong(1, userId);
                 ResultSet resultSetCombSize = combSizeStatement.executeQuery();
                 resultSetCombSize.next();
-                bot.sendMessage(chatId, bot.formatUserMention(userName, userId) + ", ты сегодня уже играл, следующая попытка увеличить расческу завтра. Сейчас её размер "
-                        + resultSetCombSize.getInt(1) + " см");
+                int combSize = resultSetCombSize.getInt(1);
+                bot.sendMessage(chatId, BotMessages.ALREADY_PLAYED_COMB.format(userNameToString,
+                        combSize));
                 return;
             }
             int currentCombSize = resultSet.getInt("comb_size");
@@ -71,13 +74,11 @@ public class PlayCombGameCommand implements CommandHandler{
                 throw new RuntimeException(e);
             }
             if(deltaSize>0) {
-                bot.sendMessage(chatId, bot.formatUserMention(userName, userId) + " увеличил твою расческу на " + deltaSize + "см. Длина твоей расчески " + newCombSize+" см");
+                bot.sendMessage(chatId, BotMessages.INCREASE_COMB.format(userNameToString, deltaSize, newCombSize));
             } else if (deltaSize<0) {
-                bot.sendMessage(chatId, bot.formatUserMention(userName, userId) + " уменьшил твою расческу на " + -deltaSize + "см. Длина твоей расчески " + newCombSize+" см");
-
+                bot.sendMessage(chatId, BotMessages.DECREASE_COMB.format(userNameToString, deltaSize, newCombSize));
             } else {
-                bot.sendMessage(chatId, bot.formatUserMention(userName, userId) + " расческа не изменилась, её размер " + newCombSize+ " см");
-
+                bot.sendMessage(chatId, BotMessages.NO_CHANGE_COMB.format(userNameToString, newCombSize));
             }
         }
     }
