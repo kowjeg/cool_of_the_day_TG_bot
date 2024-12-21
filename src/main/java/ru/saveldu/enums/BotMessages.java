@@ -19,8 +19,13 @@ public enum BotMessages {
     DECREASE_COMB("{0}, уменьшил твою расчёску на {1} см. Теперь её длина {2} см."),
     NO_CHANGE_COMB("{0}, размер расчёски в этот раз не поменялся, её размер {1} см."),
 
-    UNKNOWN_COMMAND("Я тебя не понимаю");
+    UNKNOWN_COMMAND("Я тебя не понимаю"),
 
+
+    COMB_STATS_HEADER("Топ расчесок:\n"),
+    COMB_STATS_FORMAT("%-20s %10s%n"),
+    COMB_STATS_SEPARATOR("----------------------------------------\n"),
+    SQL_ERROR("Произошла ошибка при получении данных.");
 
 
 

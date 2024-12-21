@@ -17,7 +17,7 @@ public class DatabaseService {
             Thread.sleep(4000);
 
             String connectString = "jdbc:mysql://" + System.getenv("HOST_NAME") + ":"
-                    + System.getenv("DB_PORT") + "/" + System.getenv("DB_NAME");
+                    + System.getenv("DB_PORT") + "/";
             connection = DriverManager.getConnection(
                     connectString,
                     System.getenv("DB_USER"),
@@ -35,10 +35,13 @@ public class DatabaseService {
 
     private void initializeDBSchemaTable() throws SQLException {
         String createSchemaSQL = "CREATE SCHEMA IF NOT EXISTS telegram_bot;";
+        String useSchemaSQL = "USE telegram_bot;";
         String createUsersTableSQL = "CREATE TABLE IF NOT EXISTS telegram_bot.users ("
                 + "chat_id BIGINT NOT NULL, "
                 + "user_id BIGINT NOT NULL, "
                 + "user_name VARCHAR(255) NOT NULL, "
+                + "comb_size INT NOT NULL, "
+                + "last_played_date date NOT NULL, "
                 + "PRIMARY KEY (chat_id, user_id)"
                 + ");";
         String createStatsTableSQL = "CREATE TABLE IF NOT EXISTS telegram_bot.stats ("
@@ -59,6 +62,7 @@ public class DatabaseService {
 
         Statement stmt = connection.createStatement();
         stmt.executeUpdate(createSchemaSQL);
+        stmt.executeUpdate(useSchemaSQL);
         stmt.executeUpdate(createUsersTableSQL);
         stmt.executeUpdate(createStatsTableSQL);
         stmt.executeUpdate(createCoolOfTheDayTableSQL);
@@ -67,7 +71,7 @@ public class DatabaseService {
 
     public void ensureConnection() {
         try {
-            if (connection == null || connection.isClosed() || !connection.isValid(2)) {
+            if (connection == null || connection.isClosed()) {
                 initializeDatabaseConnection();
             }
         } catch (SQLException e) {

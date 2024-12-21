@@ -29,6 +29,7 @@ public class MyAmazingBot extends MultiSessionTelegramBot {
         commands.put("/register", new RegistrationCommand(connection, this));
         commands.put("/stats", new ShowStatsCommand(connection, this));
         commands.put("/cooloftheday", new ChooseCoolOfTheDayCommand(connection, this));
+        commands.put("/topcombs", new CombStatsCommand(connection,this));
     }
 
     @Override
@@ -46,7 +47,7 @@ public class MyAmazingBot extends MultiSessionTelegramBot {
                 handler.execute(update);
             } catch (Exception e) {
                 e.printStackTrace();
-                sendMessage(chatId, BotMessages.UNKNOWN_COMMAND.format());
+//                sendMessage(chatId, BotMessages.UNKNOWN_COMMAND.format());
             }
         }
         String text = loadMessage("main");
