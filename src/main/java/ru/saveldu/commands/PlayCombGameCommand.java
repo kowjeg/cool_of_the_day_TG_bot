@@ -48,8 +48,9 @@ public class PlayCombGameCommand implements CommandHandler{
             LocalDate lastPlayed = resultSet.getDate("last_played_date") != null ? resultSet.getDate("last_played_date").toLocalDate() : null;
             if (lastPlayed != null && lastPlayed.equals(today)) {
 
-                PreparedStatement combSizeStatement = connection.prepareStatement("select comb_size from users where user_id = ?");
+                PreparedStatement combSizeStatement = connection.prepareStatement("select comb_size from users where user_id = ? AND chat_id = ?");
                 combSizeStatement.setLong(1, userId);
+                combSizeStatement.setLong(2,chatId);
                 ResultSet resultSetCombSize = combSizeStatement.executeQuery();
                 resultSetCombSize.next();
                 int combSize = resultSetCombSize.getInt(1);
