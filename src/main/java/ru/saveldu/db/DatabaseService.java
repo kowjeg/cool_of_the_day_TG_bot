@@ -71,7 +71,7 @@ public class DatabaseService {
 
     public void ensureConnection() {
         try {
-            if (connection == null || connection.isClosed()) {
+            if (connection == null || connection.isClosed() || !connection.isValid(5)) {
                 initializeDatabaseConnection();
             }
         } catch (SQLException e) {
