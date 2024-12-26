@@ -40,7 +40,7 @@ public class MyAmazingBot extends MultiSessionTelegramBot {
             long chatId = message.getChatId();
 
             try {
-                db.ensureConnection();
+
 
                 String command = messageText.split("[ @]")[0];
                 CommandHandler handler = commands.get(command);
