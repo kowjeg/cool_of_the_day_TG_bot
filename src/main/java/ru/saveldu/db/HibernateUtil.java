@@ -29,7 +29,7 @@ public class HibernateUtil {
             settings.put("hibernate.connection.username", System.getenv("DB_USER"));
             settings.put("hibernate.connection.password", System.getenv("DB_PASSWORD"));
             settings.put("hibernate.connection.driver_class", "com.mysql.cj.jdbc.Driver");
-            settings.put("hibernate.dialect", "org.hibernate.dialect.MySQLDialect");
+            settings.put("hibernate.dialect", "org.hibernate.dialect.MySQL8Dialect");
             settings.put("hibernate.show_sql", "true");
             settings.put("hibernate.format_sql", "true");
             settings.put("hibernate.hbm2ddl.auto", "update");
@@ -49,12 +49,11 @@ public class HibernateUtil {
         }
     }
 
-    // Метод для получения SessionFactory
+
     public static SessionFactory getSessionFactory() {
         return sessionFactory;
     }
 
-    // Метод для закрытия SessionFactory (например, при завершении работы приложения)
     public static void shutdown() {
         if (sessionFactory != null) {
             sessionFactory.close();
