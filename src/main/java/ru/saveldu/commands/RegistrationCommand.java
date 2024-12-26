@@ -1,6 +1,9 @@
 package ru.saveldu.commands;
 
+import org.hibernate.Session;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import ru.saveldu.db.HibernateUtil;
+import ru.saveldu.entities.User;
 import ru.saveldu.enums.BotMessages;
 import ru.saveldu.MultiSessionTelegramBot;
 import java.sql.Connection;
@@ -23,6 +26,14 @@ public class RegistrationCommand implements CommandHandler{
 
         long chatId = update.getMessage().getChatId();
         long userId = update.getMessage().getFrom().getId();
+
+        Session session = HibernateUtil.getSessionFactory().openSession();
+
+        String hqlCheckAlreadyRegistered = "FROM User where userId = : userId and chatId = : chatId";
+        User existedUser = session.createQuery(hqlCheckAlreadyRegistered, User.class)
+                .setParameter("userId", userId)
+                .setParameter("chatId", chatId)
+                .uniqueResult();
         String userName = update.getMessage().getFrom().getFirstName();
         String userNameToString = bot.formatUserMention(userName, userId);
         String sqlCheckAlreadyRegistered = "SELECT user_id FROM users WHERE user_id = ? and chat_id = ?";

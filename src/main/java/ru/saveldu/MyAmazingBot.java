@@ -19,8 +19,8 @@ public class MyAmazingBot extends MultiSessionTelegramBot {
 
     public MyAmazingBot() {
         super(TELEGRAM_BOT_NAME, TELEGRAM_BOT_TOKEN);
-        db = new DatabaseService();
-        connection = db.getConnection();
+//        db = new DatabaseService();
+//        connection = db.getConnection();
         initializeCommands();
     }
 
