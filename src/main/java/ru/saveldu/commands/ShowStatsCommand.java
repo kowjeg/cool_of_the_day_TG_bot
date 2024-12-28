@@ -10,7 +10,7 @@ import java.time.LocalDate;
 
 public class ShowStatsCommand implements CommandHandler{
 
-    private final MultiSessionTelegramBot bot  = MyAmazingBot.getInstance();
+//    private final MultiSessionTelegramBot bot  = MyAmazingBot.getInstance();
 
     public ShowStatsCommand() {
     }
@@ -20,30 +20,30 @@ public class ShowStatsCommand implements CommandHandler{
         int currentYear = today.getYear();
         long chatId = update.getMessage().getChatId();
 
-        String statsSql = "SELECT user_name, count FROM stats WHERE chat_id = ? AND year = ? ORDER BY count DESC";
-        try (PreparedStatement statsStmt = connection.prepareStatement(statsSql)) {
-            statsStmt.setLong(1, chatId);
-            statsStmt.setInt(2, currentYear);
-            ResultSet rs = statsStmt.executeQuery();
-
-            if (rs.next()) {
-                StringBuilder statsMessage = new StringBuilder(BotMessages.STATS_HEADER.format(String.valueOf(currentYear))).append("\n");
-                String partCountSql = "SELECT count(*) FROM users";
-                Statement partCountStmt = connection.createStatement();
-                ResultSet rsCountSet = partCountStmt.executeQuery(partCountSql);
-
-                rsCountSet.next();
-                int participants = rsCountSet.getInt(1);
-                do {
-                    String userName = rs.getString("user_name");
-                    int count = rs.getInt("count");
-                    statsMessage.append(userName).append(" - ").append(count).append(" раз\n");
-                } while (rs.next());
-                statsMessage.append("\nВсего фолофанов: " + participants);
-                bot.sendMessage(chatId, statsMessage.toString());
-            } else {
-                bot.sendMessage(chatId, BotMessages.NO_STATS.format());
-            }
-        }
+//        String statsSql = "SELECT user_name, count FROM stats WHERE chat_id = ? AND year = ? ORDER BY count DESC";
+//        try (PreparedStatement statsStmt = connection.prepareStatement(statsSql)) {
+//            statsStmt.setLong(1, chatId);
+//            statsStmt.setInt(2, currentYear);
+//            ResultSet rs = statsStmt.executeQuery();
+//
+//            if (rs.next()) {
+//                StringBuilder statsMessage = new StringBuilder(BotMessages.STATS_HEADER.format(String.valueOf(currentYear))).append("\n");
+//                String partCountSql = "SELECT count(*) FROM users";
+//                Statement partCountStmt = connection.createStatement();
+//                ResultSet rsCountSet = partCountStmt.executeQuery(partCountSql);
+//
+//                rsCountSet.next();
+//                int participants = rsCountSet.getInt(1);
+//                do {
+//                    String userName = rs.getString("user_name");
+//                    int count = rs.getInt("count");
+//                    statsMessage.append(userName).append(" - ").append(count).append(" раз\n");
+//                } while (rs.next());
+//                statsMessage.append("\nВсего фолофанов: " + participants);
+//                bot.sendMessage(chatId, statsMessage.toString());
+//            } else {
+//                bot.sendMessage(chatId, BotMessages.NO_STATS.format());
+//            }
+//        }
     }
 }

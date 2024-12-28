@@ -3,10 +3,7 @@ package ru.saveldu;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.saveldu.commands.*;
-import ru.saveldu.db.DatabaseService;
-import ru.saveldu.enums.BotMessages;
 
-import java.sql.*;
 import java.util.HashMap;
 
 public class MyAmazingBot extends MultiSessionTelegramBot {
@@ -17,26 +14,23 @@ public class MyAmazingBot extends MultiSessionTelegramBot {
 
     private HashMap<String, CommandHandler> commands = new HashMap<>();
 
-
-
     public static MyAmazingBot getInstance() {
         if (instance == null) {
             instance = new MyAmazingBot();
         }
         return instance;
     }
-
     private MyAmazingBot() {
         super(TELEGRAM_BOT_NAME, TELEGRAM_BOT_TOKEN);
-        initializeCommands();
+
     }
 
-    private void initializeCommands() {
-        commands.put("/play", new PlayCombGameCommand());
+    public void initializeCommands() {
+//        commands.put("/play", new PlayCombGameCommand());
         commands.put("/register", new RegistrationCommand());
-        commands.put("/stats", new ShowStatsCommand());
-        commands.put("/cooloftheday", new ChooseCoolOfTheDayCommand());
-        commands.put("/topcombs", new CombStatsCommand());
+//        commands.put("/stats", new ShowStatsCommand());
+//        commands.put("/cooloftheday", new ChooseCoolOfTheDayCommand());
+//        commands.put("/topcombs", new CombStatsCommand());
     }
 
     @Override
