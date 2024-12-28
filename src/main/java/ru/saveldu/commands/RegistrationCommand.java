@@ -3,23 +3,21 @@ package ru.saveldu.commands;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import ru.saveldu.MyAmazingBot;
 import ru.saveldu.db.HibernateUtil;
 import ru.saveldu.entities.User;
 import ru.saveldu.enums.BotMessages;
 import ru.saveldu.MultiSessionTelegramBot;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class RegistrationCommand implements CommandHandler{
 
-    private final Connection connection;
-    private final MultiSessionTelegramBot bot;
 
-    public RegistrationCommand(Connection connection, MultiSessionTelegramBot bot) {
-        this.connection = connection;
-        this.bot = bot;
+    private final MultiSessionTelegramBot bot  = MyAmazingBot.getInstance();
+
+    public RegistrationCommand() {
+
     }
     @Override
     public void execute(Update update) throws SQLException {
@@ -52,15 +50,5 @@ public class RegistrationCommand implements CommandHandler{
             e.printStackTrace();
             bot.sendMessage(chatId, "Ошибка при регистрации. Попробуйте позже.");
         }
-//
-//
-//        String sql = "INSERT INTO users (chat_id, user_id, user_name) VALUES (?, ?, ?) " +
-//                "ON DUPLICATE KEY UPDATE user_name = VALUES(user_name)";
-//        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-//            stmt.setLong(1, chatId);
-//            stmt.setLong(2, userId);
-//            stmt.setString(3, userName);
-//            stmt.executeUpdate();
-//        }
     }
 }

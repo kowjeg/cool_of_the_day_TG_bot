@@ -11,25 +11,32 @@ import java.util.HashMap;
 
 public class MyAmazingBot extends MultiSessionTelegramBot {
 
-    public static final String TELEGRAM_BOT_NAME = "test";
-    public static final String TELEGRAM_BOT_TOKEN = System.getenv("BOT_TOKEN");
-    private Connection connection;
-    private DatabaseService db;
+    private static MyAmazingBot instance;
+    private static final String TELEGRAM_BOT_NAME = "test";
+    private static final String TELEGRAM_BOT_TOKEN = System.getenv("BOT_TOKEN");
+
     private HashMap<String, CommandHandler> commands = new HashMap<>();
 
-    public MyAmazingBot() {
+
+
+    public static MyAmazingBot getInstance() {
+        if (instance == null) {
+            instance = new MyAmazingBot();
+        }
+        return instance;
+    }
+
+    private MyAmazingBot() {
         super(TELEGRAM_BOT_NAME, TELEGRAM_BOT_TOKEN);
-//        db = new DatabaseService();
-//        connection = db.getConnection();
         initializeCommands();
     }
 
     private void initializeCommands() {
-        commands.put("/play", new PlayCombGameCommand(connection, this));
-        commands.put("/register", new RegistrationCommand(connection, this));
-        commands.put("/stats", new ShowStatsCommand(connection, this));
-        commands.put("/cooloftheday", new ChooseCoolOfTheDayCommand(connection, this));
-        commands.put("/topcombs", new CombStatsCommand(connection,this));
+        commands.put("/play", new PlayCombGameCommand());
+        commands.put("/register", new RegistrationCommand());
+        commands.put("/stats", new ShowStatsCommand());
+        commands.put("/cooloftheday", new ChooseCoolOfTheDayCommand());
+        commands.put("/topcombs", new CombStatsCommand());
     }
 
     @Override

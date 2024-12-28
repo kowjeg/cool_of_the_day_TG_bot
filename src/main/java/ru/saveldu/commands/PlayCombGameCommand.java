@@ -1,6 +1,7 @@
 package ru.saveldu.commands;
 
 import org.telegram.telegrambots.meta.api.objects.Update;
+import ru.saveldu.MyAmazingBot;
 import ru.saveldu.enums.BotMessages;
 import ru.saveldu.MultiSessionTelegramBot;
 
@@ -10,14 +11,14 @@ import java.util.Random;
 
 public class PlayCombGameCommand implements CommandHandler{
 
-    private final Connection connection;
-    private final MultiSessionTelegramBot bot;
+
+    private final MultiSessionTelegramBot bot  = MyAmazingBot.getInstance();
+
     private final int MAX_COMB_CHANGE_SIZE = 14;
     private final int MIN_COMB_CHANGE_SIZE = -9;
 
-    public PlayCombGameCommand(Connection connection, MultiSessionTelegramBot bot) {
-        this.connection = connection;
-        this.bot = bot;
+    public PlayCombGameCommand() {
+
     }
 
     @Override

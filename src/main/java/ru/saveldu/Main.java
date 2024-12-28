@@ -13,7 +13,7 @@ public class Main {
 
 
             TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
-            telegramBotsApi.registerBot(new MyAmazingBot());
+            telegramBotsApi.registerBot(MyAmazingBot.getInstance());
             System.out.println("MyAmazingBot successfully started!");
             // Ensure this prcess wait forever
             Thread.currentThread().join();

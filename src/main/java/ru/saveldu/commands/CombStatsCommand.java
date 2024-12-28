@@ -1,23 +1,42 @@
 package ru.saveldu.commands;
 
+import org.hibernate.Session;
+import org.hibernate.query.Query;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.saveldu.MultiSessionTelegramBot;
+import ru.saveldu.MyAmazingBot;
+import ru.saveldu.db.HibernateUtil;
+import ru.saveldu.entities.Stat;
 import ru.saveldu.enums.BotMessages;
 
 import java.sql.*;
+import java.util.List;
 
 public class CombStatsCommand implements CommandHandler {
+    private final MultiSessionTelegramBot bot  = MyAmazingBot.getInstance();
 
-    private final Connection connection;
-    private final MultiSessionTelegramBot bot;
+    public CombStatsCommand() {
 
-    public CombStatsCommand(Connection connection, MultiSessionTelegramBot bot) {
-        this.connection = connection;
-        this.bot = bot;
     }
 
     @Override
     public void execute(Update update) {
+        try(Session session = HibernateUtil.getSessionFactory().openSession()) {
+            session.beginTransaction();
+            String hql = "from User where chatId = :chatId and combSize is not null order by combSize desc";
+
+            Query<Stat>  query = session.createQuery(hql, Stat.class);
+            query.setParameter("chatId", update.getMessage().getChatId());
+            List<Stat> list = query.list();
+
+
+
+
+            session.getTransaction().commit();
+
+
+
+        }
         long chatId = update.getMessage().getChatId();
 
         StringBuilder stringBuilder = new StringBuilder();

@@ -1,6 +1,7 @@
 package ru.saveldu.commands;
 
 import org.telegram.telegrambots.meta.api.objects.Update;
+import ru.saveldu.MyAmazingBot;
 import ru.saveldu.enums.BotMessages;
 import ru.saveldu.MultiSessionTelegramBot;
 
@@ -9,12 +10,9 @@ import java.time.LocalDate;
 
 public class ShowStatsCommand implements CommandHandler{
 
-    private final Connection connection;
-    private final MultiSessionTelegramBot bot;
+    private final MultiSessionTelegramBot bot  = MyAmazingBot.getInstance();
 
-    public ShowStatsCommand(Connection connection, MultiSessionTelegramBot bot) {
-        this.connection = connection;
-        this.bot = bot;
+    public ShowStatsCommand() {
     }
     @Override
     public void execute(Update update) throws SQLException {
