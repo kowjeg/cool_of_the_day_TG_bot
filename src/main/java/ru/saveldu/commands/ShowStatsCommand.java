@@ -28,7 +28,7 @@ public class ShowStatsCommand implements CommandHandler{
             LocalDate today = LocalDate.now();
             int currentYear = today.getYear();
 
-            String statsHql = "FROM Stat where chatId = :chatId AND year = :year order by 'count' desc";
+            String statsHql = "FROM Stat where chatId = :chatId AND year = :year order by countWins desc";
             List<Stat> statList = session.createQuery(statsHql,Stat.class)
                     .setParameter("chatId", chatId)
                     .setParameter("year", currentYear)
@@ -37,7 +37,7 @@ public class ShowStatsCommand implements CommandHandler{
             StringBuilder statMessage = new StringBuilder(BotMessages.STATS_HEADER.format(String.valueOf(currentYear))).append("\n");
             int participants = statList.size();
             for (Stat s : statList) {
-                statMessage.append(s.getUserName()).append(" - ").append(s.getCount()).append(" раз\n");
+                statMessage.append(s.getUserName()).append(" - ").append(s.getCountWins()).append(" раз\n");
 
             }
             statMessage.append("\nВсего фолофанов: " + participants);
