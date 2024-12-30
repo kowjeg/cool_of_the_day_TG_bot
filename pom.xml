@@ -21,6 +21,33 @@
             <artifactId>telegrambots</artifactId>
             <version>6.9.7.1</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/com.zaxxer/HikariCP -->
+
+
+        <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
+        <!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-core -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>5.6.15.Final</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/hikari-cp/hikari-cp -->
+
+        <!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-hikaricp -->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-hikaricp</artifactId>
+            <version>5.6.15.Final</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.zaxxer/HikariCP -->
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>4.0.3</version>
+        </dependency>
+
 
         <dependency>
             <groupId>org.telegram</groupId>
@@ -42,30 +69,39 @@
             <artifactId>maven-compiler-plugin</artifactId>
             <version>3.12.0</version>
         </dependency>
-<!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter &ndash;&gt;-->
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.boot</groupId>-->
-<!--            <artifactId>spring-boot-starter</artifactId>-->
-<!--            <version>3.4.0</version>-->
-<!--        </dependency>-->
 
-<!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa &ndash;&gt;-->
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.boot</groupId>-->
-<!--            <artifactId>spring-boot-starter-data-jpa</artifactId>-->
-<!--            <version>3.4.0</version>-->
-<!--        </dependency>-->
+        <!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-core -->
 
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.boot</groupId>-->
-<!--            <artifactId>spring-boot-starter-web</artifactId>-->
-<!--            <version>3.4.0</version>-->
-<!--        </dependency>-->
+        <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.30</version>
+
+        </dependency>
 
 
     </dependencies>
     <build>
         <plugins>
+
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.10.1</version>
+                <configuration>
+                    <source>21</source>
+                    <target>21</target>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>1.18.30</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
             <!-- Maven Shade Plugin for creating a "fat" JAR -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

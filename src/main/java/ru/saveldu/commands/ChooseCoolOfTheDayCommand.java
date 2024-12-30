@@ -1,87 +1,103 @@
 package ru.saveldu.commands;
 
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.hibernate.query.Query;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import ru.saveldu.MyAmazingBot;
+import ru.saveldu.db.HibernateUtil;
+import ru.saveldu.entities.CoolOfTheDay;
+import ru.saveldu.entities.Stat;
+import ru.saveldu.entities.User;
 import ru.saveldu.enums.BotMessages;
 import ru.saveldu.MultiSessionTelegramBot;
 
 import java.sql.*;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Random;
 
-public class ChooseCoolOfTheDayCommand implements CommandHandler{
+public class ChooseCoolOfTheDayCommand implements CommandHandler {
 
-    private final Connection connection;
-    private final MultiSessionTelegramBot bot;
+    private final MultiSessionTelegramBot bot = MyAmazingBot.getInstance();
 
-    public ChooseCoolOfTheDayCommand(Connection connection, MultiSessionTelegramBot bot) {
-        this.connection = connection;
-        this.bot = bot;
+    public ChooseCoolOfTheDayCommand() {
     }
+
     @Override
     public void execute(Update update) throws SQLException {
 
-        LocalDate today = LocalDate.now();
-        long chatId = update.getMessage().getChatId();
-
-        String checkSql = "SELECT user_name FROM cool_of_the_day WHERE chat_id = ? AND date = ?";
-        try (PreparedStatement checkStmt = connection.prepareStatement(checkSql)) {
-            checkStmt.setLong(1, chatId);
-            checkStmt.setDate(2, Date.valueOf(today));
-            ResultSet rs = checkStmt.executeQuery();
-            if (rs.next()) {
-                bot.sendMessage(chatId, BotMessages.COOL_DAY_ALREADY_CHOSEN.format(rs.getString("user_name")));
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            LocalDate today = LocalDate.now();
+            long chatId = update.getMessage().getChatId();
+            String checkHql = "from CoolOfTheDay where chatId = :chatId and date = :date";
+            CoolOfTheDay todayCoolOfTheDay = session.createQuery(checkHql, CoolOfTheDay.class)
+                    .setParameter("chatId", chatId)
+                    .setParameter("date", today)
+                    .uniqueResult();
+            if (todayCoolOfTheDay != null) {
+                bot.sendMessage(chatId, BotMessages.COOL_DAY_ALREADY_CHOSEN.format(todayCoolOfTheDay.getUserName()));
                 return;
             }
-        }
 
-        String selectSql = "SELECT user_id, user_name FROM users WHERE chat_id = ?";
-        try (PreparedStatement selectStmt = connection.prepareStatement(selectSql, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY)) {
-            selectStmt.setLong(1, chatId);
-            ResultSet rs = selectStmt.executeQuery();
+            String selectHql = "from User where chatId = :chatId";
 
-            Random random = new Random();
-            if (rs.next()) {
-                rs.last();
-                int rowCount = rs.getRow();
-                int randomRow = random.nextInt(rowCount) + 1;
-                rs.absolute(randomRow);
-
-                long userId = rs.getLong("user_id");
-                String userName = rs.getString("user_name");
-
-                String insertSql = "INSERT INTO cool_of_the_day (chat_id, user_id, user_name, date) VALUES (?, ?, ?, ?)";
-                try (PreparedStatement insertStmt = connection.prepareStatement(insertSql)) {
-                    insertStmt.setLong(1, chatId);
-                    insertStmt.setLong(2, userId);
-                    insertStmt.setString(3, userName);
-                    insertStmt.setDate(4, Date.valueOf(today));
-                    insertStmt.executeUpdate();
-                }
-
-                String updateStatsSql = "INSERT INTO stats (chat_id, user_id, user_name, year, count) " +
-                        "VALUES (?, ?, ?, ?, 1) " +
-                        "ON DUPLICATE KEY UPDATE count = count + 1";
-                try (PreparedStatement statsStmt = connection.prepareStatement(updateStatsSql)) {
-                    statsStmt.setLong(1, chatId);
-                    statsStmt.setLong(2, userId);
-                    statsStmt.setString(3, userName);
-                    statsStmt.setInt(4, today.getYear());
-                    statsStmt.executeUpdate();
-                }
-
-                bot.sendMessage(chatId, BotMessages.ANALYZING.format());
-                Thread.sleep(700);
-                bot.sendMessage(chatId, BotMessages.SELECTING.format());
-                Thread.sleep(700);
-                bot.sendMessage(chatId, BotMessages.CALIBRATING.format());
-                Thread.sleep(700);
-                String message = BotMessages.COOL_DAY_RESULT.format(bot.formatUserMention(userName, userId));
-                bot.sendMessage(chatId, message);
-            } else {
-                bot.sendMessage(chatId, BotMessages.NO_REGISTERED_USERS.format());
+            Transaction transaction = session.beginTransaction();
+            Query<User> query = session.createQuery(selectHql, User.class)
+                    .setParameter("chatId", chatId);
+            List<User> userList = query.list();
+            if (userList.isEmpty()) {
+                return;
             }
+            Random random = new Random();
+            int participants = userList.size();
+            int winnerNumber = random.nextInt(participants) + 1;
+            User winner = userList.get(winnerNumber);
+
+            //insert to cool_of_the_day
+
+            CoolOfTheDay coolOfTheDay = new CoolOfTheDay();
+            coolOfTheDay.setDate(today);
+            coolOfTheDay.setUserId(winner.getUserId());
+            coolOfTheDay.setChatId(winner.getChatId());
+            coolOfTheDay.setUserName(winner.getUserName());
+            session.save(coolOfTheDay);
+
+            //insert to stats
+
+            String hqlCheck = "FROM Stat WHERE chatId = :chatId AND userId = :userId AND year = :year";
+            Stat existingStat = session.createQuery(hqlCheck, Stat.class)
+                    .setParameter("chatId", winner.getChatId())
+                    .setParameter("userId", winner.getUserId())
+                    .setParameter("year", today.getYear())
+                    .uniqueResult();
+            if (existingStat != null) {
+                existingStat.setCount(existingStat.getCount() + 1);
+                session.update(existingStat);
+            } else {
+                Stat stat = new Stat();
+                stat.setYear(today.getYear());
+                stat.setUserId(winner.getUserId());
+                stat.setUserName(winner.getUserName());
+                stat.setChatId(winner.getChatId());
+                stat.setCount(1);
+                session.save(stat);
+            }
+            transaction.commit();
+
+            bot.sendMessage(chatId, BotMessages.ANALYZING.format());
+            Thread.sleep(700);
+            bot.sendMessage(chatId, BotMessages.SELECTING.format());
+            Thread.sleep(700);
+            bot.sendMessage(chatId, BotMessages.CALIBRATING.format());
+            Thread.sleep(700);
+            String message = BotMessages.COOL_DAY_RESULT.format(bot.formatUserMention(winner.getUserName(), winner.getUserId()));
+            bot.sendMessage(chatId, message);
+
+
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
+
     }
 }
