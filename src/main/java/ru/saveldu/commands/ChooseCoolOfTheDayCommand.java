@@ -72,7 +72,7 @@ public class ChooseCoolOfTheDayCommand implements CommandHandler {
                     .setParameter("year", today.getYear())
                     .uniqueResult();
             if (existingStat != null) {
-                existingStat.setCount(existingStat.getCount() + 1);
+                existingStat.setCountWins(existingStat.getCountWins() + 1);
                 session.update(existingStat);
             } else {
                 Stat stat = new Stat();
@@ -80,7 +80,7 @@ public class ChooseCoolOfTheDayCommand implements CommandHandler {
                 stat.setUserId(winner.getUserId());
                 stat.setUserName(winner.getUserName());
                 stat.setChatId(winner.getChatId());
-                stat.setCount(1);
+                stat.setCountWins(1);
                 session.save(stat);
             }
             transaction.commit();
