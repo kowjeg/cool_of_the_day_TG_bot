@@ -11,6 +11,7 @@ import ru.saveldu.MultiSessionTelegramBot;
 
 import java.sql.*;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Random;
 
 public class PlayCombGameCommand implements CommandHandler{
@@ -68,13 +69,26 @@ public class PlayCombGameCommand implements CommandHandler{
                 user.setCombSize(newCombSize);
                 user.setLastPlayedDate(today);
                 session.saveOrUpdate(user);
+
+                List<User> users = session.createQuery("from User where chatId = :chatId order by combSize desc", User.class)
+                        .setParameter("chatId", chatId)
+                        .list();
+                int rank = 1;
+                for (User u : users) {
+                    if (u.getUserId() == userId) {
+                        break;
+                    }
+                    rank++;
+                }
+                String rankMessage = " Ты сейчас на " + rank + " месте в группе.";
+
                 transaction.commit();
                 if (deltaSize > 0) {
-                    bot.sendMessage(chatId, BotMessages.INCREASE_COMB.format(userNameToString, deltaSize, newCombSize));
+                    bot.sendMessage(chatId, BotMessages.INCREASE_COMB.format(userNameToString, deltaSize, newCombSize) + rankMessage);
                 } else if (deltaSize < 0) {
-                    bot.sendMessage(chatId, BotMessages.DECREASE_COMB.format(userNameToString, deltaSize, newCombSize));
+                    bot.sendMessage(chatId, BotMessages.DECREASE_COMB.format(userNameToString, deltaSize, newCombSize) + rankMessage);
                 } else {
-                    bot.sendMessage(chatId, BotMessages.NO_CHANGE_COMB.format(userNameToString, newCombSize));
+                    bot.sendMessage(chatId, BotMessages.NO_CHANGE_COMB.format(userNameToString, newCombSize) + rankMessage);
                 }
             }
 

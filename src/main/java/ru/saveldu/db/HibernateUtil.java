@@ -18,16 +18,18 @@ public class HibernateUtil {
             // Настройки Hibernate
             Properties settings = new Properties();
 
-            String connectString = "jdbc:mysql://" + System.getenv("HOST_NAME") + ":"
-                    + System.getenv("DB_PORT") + "/";
             settings.put("hibernate.connection.url", String.format(
-                    "jdbc:mysql://%s:%s/%s?useSSL=false&serverTimezone=UTC",
-                    System.getenv("HOST_NAME"),
+                    "jdbc:mysql://%s:%s/%s?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true",
+                    System.getenv("DB_HOST"),
                     System.getenv("DB_PORT"),
                     System.getenv("DB_NAME")
             ));
+            System.out.println(settings.get("hibernate.connection.url"));
             settings.put("hibernate.connection.username", System.getenv("DB_USER"));
-            settings.put("hibernate.connection.password", System.getenv("DB_PASSWORD"));
+            settings.put("hibernate.connection.password", System.getenv("DB_PASS"));
+            System.out.println(settings.get("hibernate.connection.username"));
+            System.out.println(settings.get("hibernate.connection.password"));
+
             settings.put("hibernate.connection.driver_class", "com.mysql.cj.jdbc.Driver");
             settings.put("hibernate.dialect", "org.hibernate.dialect.MySQL8Dialect");
             settings.put("hibernate.show_sql", "true");
