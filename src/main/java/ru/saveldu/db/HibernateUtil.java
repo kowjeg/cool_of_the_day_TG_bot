@@ -34,9 +34,20 @@ public class HibernateUtil {
             settings.put("hibernate.format_sql", "true");
             settings.put("hibernate.hbm2ddl.auto", "update");
 
+
+//            settings.put("hibernate.hikari.dataSourceClassName", "com.zaxxer.hikari.HikariDataSource");
+            settings.put("hibernate.hikari.minimumIdle", "5");
+            settings.put("hibernate.hikari.maximumPoolSize", "10");
+            settings.put("hibernate.hikari.idleTimeout", "300000");
+            settings.put("hibernate.hikari.connectionTimeout", "30000");
+            settings.put("hibernate.hikari.maxLifetime", "1800000");
+            settings.put("hibernate.hikari.connectionTestQuery", "SELECT 1");
+
             configuration.setProperties(settings);
 
             configuration.addAnnotatedClass(ru.saveldu.entities.User.class);
+            configuration.addAnnotatedClass(ru.saveldu.entities.Stat.class);
+            configuration.addAnnotatedClass(ru.saveldu.entities.CoolOfTheDay.class);
 
 
             ServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()

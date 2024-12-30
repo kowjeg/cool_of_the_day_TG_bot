@@ -17,27 +17,30 @@ public class RegistrationCommand implements CommandHandler{
     private final MultiSessionTelegramBot bot  = MyAmazingBot.getInstance();
 
     public RegistrationCommand() {
-
     }
+
+    private boolean isUserAlreadyRegistered(Session session, long userId, long chatId) {
+        String hql = "FROM User WHERE userId = :userId AND chatId = :chatId";
+        User user = session.createQuery(hql, User.class)
+                .setParameter("userId", userId)
+                .setParameter("chatId", chatId)
+                .uniqueResult();
+        return user != null;
+    }
+
     @Override
     public void execute(Update update) throws SQLException {
         long chatId = update.getMessage().getChatId();
         long userId = update.getMessage().getFrom().getId();
+        String userName = update.getMessage().getFrom().getFirstName();
 
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
 
-            String hqlCheckAlreadyRegistered = "FROM User where userId = : userId and chatId = : chatId";
-            User existedUser = session.createQuery(hqlCheckAlreadyRegistered, User.class)
-                    .setParameter("userId", userId)
-                    .setParameter("chatId", chatId)
-                    .uniqueResult();
-            String userName = update.getMessage().getFrom().getFirstName();
             String userNameToString = bot.formatUserMention(userName, userId);
-            if (existedUser != null) {
+            if (isUserAlreadyRegistered(session,userId,chatId)) {
                 bot.sendMessage(chatId, BotMessages.ALREADY_REGISTERED.format(userNameToString));
                 return;
             }
-
             Transaction transactionToInsert = session.beginTransaction();
             User newUser = new User();
             newUser.setUserId(userId);

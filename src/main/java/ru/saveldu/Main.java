@@ -1,5 +1,7 @@
 package ru.saveldu;
 
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
@@ -17,6 +19,7 @@ public class Main {
             telegramBotsApi.registerBot(bot);
             bot.initializeCommands();
             System.out.println("MyAmazingBot successfully started!");
+
             // Ensure this prcess wait forever
             Thread.currentThread().join();
         } catch (Exception e) {

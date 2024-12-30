@@ -26,11 +26,11 @@ public class MyAmazingBot extends MultiSessionTelegramBot {
     }
 
     public void initializeCommands() {
-//        commands.put("/play", new PlayCombGameCommand());
+        commands.put("/play", new PlayCombGameCommand());
         commands.put("/register", new RegistrationCommand());
-//        commands.put("/stats", new ShowStatsCommand());
-//        commands.put("/cooloftheday", new ChooseCoolOfTheDayCommand());
-//        commands.put("/topcombs", new CombStatsCommand());
+        commands.put("/stats", new ShowStatsCommand());
+        commands.put("/cooloftheday", new ChooseCoolOfTheDayCommand());
+        commands.put("/topcombs", new CombStatsCommand());
     }
 
     @Override

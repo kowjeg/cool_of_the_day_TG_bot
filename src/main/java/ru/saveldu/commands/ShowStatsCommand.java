@@ -1,49 +1,47 @@
 package ru.saveldu.commands;
 
+import org.hibernate.Session;
+import org.hibernate.Transaction;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.saveldu.MyAmazingBot;
+import ru.saveldu.db.HibernateUtil;
+import ru.saveldu.entities.Stat;
 import ru.saveldu.enums.BotMessages;
 import ru.saveldu.MultiSessionTelegramBot;
 
 import java.sql.*;
 import java.time.LocalDate;
+import java.util.List;
 
 public class ShowStatsCommand implements CommandHandler{
 
-//    private final MultiSessionTelegramBot bot  = MyAmazingBot.getInstance();
+    private final MultiSessionTelegramBot bot  = MyAmazingBot.getInstance();
 
     public ShowStatsCommand() {
     }
     @Override
     public void execute(Update update) throws SQLException {
-        LocalDate today = LocalDate.now();
-        int currentYear = today.getYear();
-        long chatId = update.getMessage().getChatId();
 
-//        String statsSql = "SELECT user_name, count FROM stats WHERE chat_id = ? AND year = ? ORDER BY count DESC";
-//        try (PreparedStatement statsStmt = connection.prepareStatement(statsSql)) {
-//            statsStmt.setLong(1, chatId);
-//            statsStmt.setInt(2, currentYear);
-//            ResultSet rs = statsStmt.executeQuery();
-//
-//            if (rs.next()) {
-//                StringBuilder statsMessage = new StringBuilder(BotMessages.STATS_HEADER.format(String.valueOf(currentYear))).append("\n");
-//                String partCountSql = "SELECT count(*) FROM users";
-//                Statement partCountStmt = connection.createStatement();
-//                ResultSet rsCountSet = partCountStmt.executeQuery(partCountSql);
-//
-//                rsCountSet.next();
-//                int participants = rsCountSet.getInt(1);
-//                do {
-//                    String userName = rs.getString("user_name");
-//                    int count = rs.getInt("count");
-//                    statsMessage.append(userName).append(" - ").append(count).append(" раз\n");
-//                } while (rs.next());
-//                statsMessage.append("\nВсего фолофанов: " + participants);
-//                bot.sendMessage(chatId, statsMessage.toString());
-//            } else {
-//                bot.sendMessage(chatId, BotMessages.NO_STATS.format());
-//            }
-//        }
+
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            long chatId = update.getMessage().getChatId();
+            LocalDate today = LocalDate.now();
+            int currentYear = today.getYear();
+
+            String statsHql = "FROM Stat where chatId = :chatId AND year = :year order by 'count' desc";
+            List<Stat> statList = session.createQuery(statsHql,Stat.class)
+                    .setParameter("chatId", chatId)
+                    .setParameter("year", currentYear)
+                    .list();
+
+            StringBuilder statMessage = new StringBuilder(BotMessages.STATS_HEADER.format(String.valueOf(currentYear))).append("\n");
+            int participants = statList.size();
+            for (Stat s : statList) {
+                statMessage.append(s.getUserName()).append(" - ").append(s.getCount()).append(" раз\n");
+
+            }
+            statMessage.append("\nВсего фолофанов: " + participants);
+            bot.sendMessage(chatId,statMessage.toString());
+        }
     }
 }
