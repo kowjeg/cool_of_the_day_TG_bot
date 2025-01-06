@@ -9,18 +9,24 @@ import java.util.HashMap;
 public class MyAmazingBot extends MultiSessionTelegramBot {
 
     private static MyAmazingBot instance;
-    private static final String TELEGRAM_BOT_NAME = "test";
+    private static final String TELEGRAM_BOT_NAME = System.getenv("BOT_USERNAME");
     private static final String TELEGRAM_BOT_TOKEN = System.getenv("BOT_TOKEN");
+
+    private static GigaChatHandler gigaChatHandler = null;
 
     private HashMap<String, CommandHandler> commands = new HashMap<>();
 
     public static MyAmazingBot getInstance() {
         if (instance == null) {
-            instance = new MyAmazingBot();
+            try {
+                instance = new MyAmazingBot();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
         return instance;
     }
-    private MyAmazingBot() {
+    private MyAmazingBot() throws Exception {
         super(TELEGRAM_BOT_NAME, TELEGRAM_BOT_TOKEN);
 
     }
@@ -41,7 +47,13 @@ public class MyAmazingBot extends MultiSessionTelegramBot {
             long chatId = message.getChatId();
 
             try {
-
+                if(message.isReply() && message.getReplyToMessage().getFrom().getUserName().equals(getBotUsername())) {
+                    if (gigaChatHandler == null) {
+                        gigaChatHandler = new GigaChatHandler();
+                    }
+                    gigaChatHandler.execute(update);
+                    return;
+                }
 
                 String command = messageText.split("[ @]")[0];
                 CommandHandler handler = commands.get(command);

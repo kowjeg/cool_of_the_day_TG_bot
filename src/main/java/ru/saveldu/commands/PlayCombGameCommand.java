@@ -14,10 +14,10 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Random;
 
-public class PlayCombGameCommand implements CommandHandler{
+public class PlayCombGameCommand implements CommandHandler {
 
 
-    private final MultiSessionTelegramBot bot  = MyAmazingBot.getInstance();
+    private final MultiSessionTelegramBot bot = MyAmazingBot.getInstance();
 
     private final int MAX_COMB_CHANGE_SIZE = 14;
     private final int MIN_COMB_CHANGE_SIZE = -9;
@@ -37,7 +37,7 @@ public class PlayCombGameCommand implements CommandHandler{
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             Transaction transaction = session.beginTransaction();
             User user = session.createQuery("from User where chatId = :chatId and userId = :userId", User.class)
-                    .setParameter("chatId",chatId)
+                    .setParameter("chatId", chatId)
                     .setParameter("userId", userId)
                     .uniqueResult();
 
