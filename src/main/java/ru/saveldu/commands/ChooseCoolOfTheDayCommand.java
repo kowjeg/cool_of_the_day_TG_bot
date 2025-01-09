@@ -51,7 +51,7 @@ public class ChooseCoolOfTheDayCommand implements CommandHandler {
             }
             Random random = new Random();
             int participants = userList.size();
-            int winnerNumber = random.nextInt(participants) + 1;
+            int winnerNumber = random.nextInt(participants);
             User winner = userList.get(winnerNumber);
 
             //insert to cool_of_the_day
