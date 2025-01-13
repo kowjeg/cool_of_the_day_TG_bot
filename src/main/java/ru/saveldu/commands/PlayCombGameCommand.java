@@ -99,7 +99,8 @@ public class PlayCombGameCommand implements CommandHandler {
     }
 
     private void sendMessageBasedOnDelta(int rank, int deltaSize, long chatId, String userNameToString, int newCombSize) {
-        String rankMessage = " Ты сейчас на " + rank + " месте в группе.";
+
+        String rankMessage = BotMessages.CURRENT_RANK.format(rank);
         if (deltaSize > 0) {
             bot.sendMessage(chatId, BotMessages.INCREASE_COMB.format(userNameToString, deltaSize, newCombSize) + rankMessage);
         } else if (deltaSize < 0) {

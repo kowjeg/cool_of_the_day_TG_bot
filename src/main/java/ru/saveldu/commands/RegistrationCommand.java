@@ -51,7 +51,7 @@ public class RegistrationCommand implements CommandHandler{
             bot.sendMessage(chatId, BotMessages.REGISTER_SUCCESS.format(userName));
         } catch (Exception e) {
             e.printStackTrace();
-            bot.sendMessage(chatId, "Ошибка при регистрации. Попробуйте позже.");
+            bot.sendMessage(chatId, BotMessages.ERROR_REG.format());
         }
     }
 }
