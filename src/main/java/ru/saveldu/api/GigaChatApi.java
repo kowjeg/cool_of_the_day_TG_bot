@@ -3,9 +3,12 @@ package ru.saveldu.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.*;
 import org.hibernate.id.UUIDGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.saveldu.api.models.AccessTokenResponse;
 import ru.saveldu.api.models.MessageResponse;
 import ru.saveldu.api.models.TextRequest;
+import ru.saveldu.commands.CombStatsCommand;
 
 import javax.net.ssl.*;
 import java.io.IOException;
@@ -25,6 +28,7 @@ public class GigaChatApi {
     private long lastTimeGetBearerKey;
     private final String apiKey = System.getenv("GIGACHAT_API_KEY");
     private static String prompt;
+    private static final Logger logger = LoggerFactory.getLogger(CombStatsCommand.class);
 
     static{
         try {
@@ -62,6 +66,7 @@ public class GigaChatApi {
 
     public String sendTextRequest(String groupId, String userMessage) throws Exception {
         String accessToken = getAccessToken();
+        logger.info("Сообщение от пользователя: {}", userMessage);
 
         Deque<TextRequest.Message> messageHistory = groupMessageHistory.computeIfAbsent(groupId, k -> new LinkedList<>());
 
@@ -91,6 +96,7 @@ public class GigaChatApi {
 
         Response response = client.newCall(request).execute();
         if (!response.isSuccessful()) {
+            logger.error("Error api response: {}", response.code());
             throw new RuntimeException("Request failed with code: " + response.code());
         }
 
@@ -100,6 +106,7 @@ public class GigaChatApi {
 
 
         String assistantMessage = messageResponse.getChoices().get(0).getMessage().getContent();
+        logger.info("Bot answer: {}", assistantMessage);
 
 
         messageHistory.addLast(new TextRequest.Message("assistant", assistantMessage));
@@ -129,6 +136,7 @@ public class GigaChatApi {
         Response response = client.newCall(request).execute();
 
         if (!response.isSuccessful()) {
+            logger.error("Failed to get access key:  {}", response.code());
             throw new RuntimeException("Request failed with code: " + response.code());
         }
 
@@ -141,6 +149,3 @@ public class GigaChatApi {
         return accessToken;
     }
 }
-
-
-

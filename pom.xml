@@ -69,6 +69,14 @@
             <version>3.12.0</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/p6spy/p6spy -->
+        <dependency>
+            <groupId>p6spy</groupId>
+            <artifactId>p6spy</artifactId>
+            <version>3.9.1</version>
+        </dependency>
+
+
         <!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-core -->
 
         <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
@@ -83,6 +91,15 @@
             <artifactId>httpclient</artifactId>
             <version>4.5.13</version>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.5.16</version>
+            <scope>compile</scope>
+        </dependency>
+
 
 
     </dependencies>

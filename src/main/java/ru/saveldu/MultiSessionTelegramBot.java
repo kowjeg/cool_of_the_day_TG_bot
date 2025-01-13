@@ -92,14 +92,14 @@ public class MultiSessionTelegramBot extends TelegramLongPollingBot {
             return "@" + userName;
         }
 
-        return "<a href=\"tg://user?id=" + userId + "\">" + usName + "</a>";
+        return "[" + usName + "](tg://user?id=" + userId + ")";
     }
 
     public void sendMessage(long chatId, String text) {
         SendMessage message = SendMessage.builder()
                 .chatId(chatId)
                 .text(text)
-                .parseMode("HTML")
+                .parseMode("Markdown")
                 .build();
         try {
             this.execute(message);

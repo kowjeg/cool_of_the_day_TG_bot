@@ -1,5 +1,7 @@
 package ru.saveldu;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.saveldu.commands.*;
@@ -7,6 +9,8 @@ import ru.saveldu.commands.*;
 import java.util.HashMap;
 
 public class MyAmazingBot extends MultiSessionTelegramBot {
+
+    private static final Logger logger = LoggerFactory.getLogger(MyAmazingBot.class);
 
     private static MyAmazingBot instance;
     private static final String TELEGRAM_BOT_NAME = System.getenv("BOT_USERNAME");
@@ -19,6 +23,7 @@ public class MyAmazingBot extends MultiSessionTelegramBot {
     public static MyAmazingBot getInstance() {
         if (instance == null) {
             try {
+                logger.info("bot starts");
                 instance = new MyAmazingBot();
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -63,7 +68,6 @@ public class MyAmazingBot extends MultiSessionTelegramBot {
 //                sendMessage(chatId, BotMessages.UNKNOWN_COMMAND.format());
             }
         }
-        String text = loadMessage("main");
-        sendTextMessage(text);
+//
     }
 }

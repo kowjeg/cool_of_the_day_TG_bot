@@ -16,6 +16,7 @@ import java.util.List;
 public class ShowStatsCommand implements CommandHandler{
 
     private final MultiSessionTelegramBot bot  = MyAmazingBot.getInstance();
+    private final int TOP_COOLS_LIST = 10;
 
     public ShowStatsCommand() {
     }
@@ -32,15 +33,17 @@ public class ShowStatsCommand implements CommandHandler{
             List<Stat> statList = session.createQuery(statsHql,Stat.class)
                     .setParameter("chatId", chatId)
                     .setParameter("year", currentYear)
-                    .list();
+                    .setMaxResults(TOP_COOLS_LIST)
+                    .list()
+                    ;
 
             StringBuilder statMessage = new StringBuilder(BotMessages.STATS_HEADER.format(String.valueOf(currentYear))).append("\n");
-            int participants = statList.size();
+//            int participants = statList.size();
             for (Stat s : statList) {
                 statMessage.append(s.getUserName()).append(" - ").append(s.getCountWins()).append(" раз\n");
 
             }
-            statMessage.append("\nВсего фолофанов: " + participants);
+//            statMessage.append("\nВсего фолофанов: " + participants);
             bot.sendMessage(chatId,statMessage.toString());
         }
     }
