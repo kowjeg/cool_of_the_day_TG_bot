@@ -13,6 +13,7 @@ import ru.saveldu.commands.CombStatsCommand;
 
 import javax.net.ssl.*;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.cert.CertificateException;
@@ -32,13 +33,19 @@ public class GigaChatApi {
     private static final Logger logger = LoggerFactory.getLogger(CombStatsCommand.class);
     private static final int MAX_HISTORY_LENGTH = 3;
 
-    static{
+    static {
         try {
-            prompt = Files.readString(Path.of("src/main/resources/prompt.txt"));
+
+            var inputStream = GigaChatApi.class.getClassLoader().getResourceAsStream("prompt.txt");
+            if (inputStream == null) {
+                throw new RuntimeException("Resource not found: prompt.txt");
+            }
+
+
+            prompt = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
     private final Map<String, Deque<TextRequest.Message>> groupMessageHistory = new ConcurrentHashMap<>();
 
