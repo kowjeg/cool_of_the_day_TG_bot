@@ -19,7 +19,7 @@ public class HibernateUtil {
             Properties settings = new Properties();
 
             settings.put("hibernate.connection.url", String.format(
-                    "jdbc:mysql://%s:%s/%s?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true",
+                    "jdbc:p6spy:mysql://%s:%s/%s?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true",
                     System.getenv("DB_HOST"),
                     System.getenv("DB_PORT"),
                     System.getenv("DB_NAME")
@@ -30,10 +30,11 @@ public class HibernateUtil {
             System.out.println(settings.get("hibernate.connection.username"));
             System.out.println(settings.get("hibernate.connection.password"));
 
-            settings.put("hibernate.connection.driver_class", "com.mysql.cj.jdbc.Driver");
+            settings.put("hibernate.connection.driver_class", "com.p6spy.engine.spy.P6SpyDriver");
             settings.put("hibernate.dialect", "org.hibernate.dialect.MySQL8Dialect");
-            settings.put("hibernate.show_sql", "true");
-            settings.put("hibernate.format_sql", "true");
+
+            settings.put("hibernate.type", "true");
+
             settings.put("hibernate.hbm2ddl.auto", "update");
 
 

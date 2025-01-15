@@ -92,14 +92,14 @@ public class MultiSessionTelegramBot extends TelegramLongPollingBot {
             return "@" + userName;
         }
 
-        return "<a href=\"tg://user?id=" + userId + "\">" + usName + "</a>";
+        return "[" + usName + "](tg://user?id=" + userId + ")";
     }
 
     public void sendMessage(long chatId, String text) {
         SendMessage message = SendMessage.builder()
                 .chatId(chatId)
                 .text(text)
-                .parseMode("HTML")
+                .parseMode("Markdown")
                 .build();
         try {
             this.execute(message);
@@ -107,6 +107,23 @@ public class MultiSessionTelegramBot extends TelegramLongPollingBot {
             e.printStackTrace();
         }
     }
+
+    public void sendReplyMessage(long chatId, String text, int replyToMessageId) {
+        SendMessage message = SendMessage.builder()
+                .chatId(chatId)
+                .text(text)
+                .parseMode("Markdown")
+                .replyToMessageId(replyToMessageId) //
+                .build();
+
+        try {
+            this.execute(message);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+
     public Long getCurrentChatId() {
         if (updateEvent.get().hasMessage()) {
             return updateEvent.get().getMessage().getFrom().getId();
