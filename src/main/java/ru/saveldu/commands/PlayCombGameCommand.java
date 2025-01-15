@@ -20,8 +20,8 @@ public class PlayCombGameCommand implements CommandHandler {
 
     private final MultiSessionTelegramBot bot = MyAmazingBot.getInstance();
 
-    private final int MAX_COMB_CHANGE_SIZE = 14;
-    private final int MIN_COMB_CHANGE_SIZE = -9;
+    private static final int MAX_COMB_CHANGE_SIZE = 14;
+    private static final int MIN_COMB_CHANGE_SIZE = -9;
 
     public PlayCombGameCommand() {}
 

@@ -5,6 +5,7 @@ import okhttp3.*;
 import org.hibernate.id.UUIDGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.saveldu.api.models.AccessTokenResponse;
 import ru.saveldu.api.models.MessageResponse;
 import ru.saveldu.api.models.TextRequest;
@@ -27,8 +28,9 @@ public class GigaChatApi {
     private static String accessToken;
     private long lastTimeGetBearerKey;
     private final String apiKey = System.getenv("GIGACHAT_API_KEY");
-    private static String prompt;
+    private static final String prompt;
     private static final Logger logger = LoggerFactory.getLogger(CombStatsCommand.class);
+    private static final int MAX_HISTORY_LENGTH = 3;
 
     static{
         try {
@@ -64,19 +66,27 @@ public class GigaChatApi {
                 .build();
     }
 
-    public String sendTextRequest(String groupId, String userMessage) throws Exception {
+    public String sendTextRequest(String groupId, Update update) throws Exception {
+
+        String userMessage = update.getMessage().getText();
+        String replyToText = update.getMessage().getReplyToMessage().getText();
+        logger.info("Сообщение в [{}] {}: {}", update.getMessage().getChatId(), update.getMessage().getFrom().getUserName(),
+                update.getMessage().getText());
+
         String accessToken = getAccessToken();
-        logger.info("Сообщение от пользователя: {}", userMessage);
 
         Deque<TextRequest.Message> messageHistory = groupMessageHistory.computeIfAbsent(groupId, k -> new LinkedList<>());
+        if (messageHistory.isEmpty()) {
 
+            messageHistory.addLast(new TextRequest.Message("assistant", replyToText));
+        }
         messageHistory.addLast(new TextRequest.Message("user", userMessage));
-        if (messageHistory.size() > 2) {
+        if (messageHistory.size() > MAX_HISTORY_LENGTH) {
             messageHistory.pollFirst();
         }
 
-
         List<TextRequest.Message> fullContext = new ArrayList<>(messageHistory);
+
         fullContext.add(0, new TextRequest.Message("system", prompt));
 
         MediaType mediaType = MediaType.parse("application/json");
@@ -106,11 +116,11 @@ public class GigaChatApi {
 
 
         String assistantMessage = messageResponse.getChoices().get(0).getMessage().getContent();
-        logger.info("Bot answer: {}", assistantMessage);
+        logger.info("Сообщение Бота в [{}]: {}", update.getMessage().getChatId(), assistantMessage);
 
 
         messageHistory.addLast(new TextRequest.Message("assistant", assistantMessage));
-        if (messageHistory.size() > 2) {
+        if (messageHistory.size() > MAX_HISTORY_LENGTH) {
             messageHistory.pollFirst();
         }
 
@@ -118,6 +128,7 @@ public class GigaChatApi {
     }
 
     public String getAccessToken() throws Exception {
+        //get new BearerKey after 25 minutes
         if (lastTimeGetBearerKey > 0 && (System.currentTimeMillis() - lastTimeGetBearerKey) < 3600 * 450) {
             return accessToken;
         }

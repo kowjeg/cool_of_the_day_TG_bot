@@ -16,7 +16,7 @@ import java.util.List;
 public class ShowStatsCommand implements CommandHandler{
 
     private final MultiSessionTelegramBot bot  = MyAmazingBot.getInstance();
-    private final int TOP_COOLS_LIST = 10;
+    private static final int TOP_COOLS_LIST = 10;
 
     public ShowStatsCommand() {
     }

@@ -17,8 +17,8 @@ import java.util.List;
 
 public class CombStatsCommand implements CommandHandler {
     private final MultiSessionTelegramBot bot = MyAmazingBot.getInstance();
-    private final int MAX_LENGTH_USERNAME = 14;
-    private final int TOP_COMB_LIST_SIZE = 10;
+    private static final int MAX_LENGTH_USERNAME = 14;
+    private static final int TOP_COMB_LIST_SIZE = 10;
 
 
 
@@ -40,7 +40,7 @@ public class CombStatsCommand implements CommandHandler {
                     .setMaxResults(TOP_COMB_LIST_SIZE);
 
             List<User> combSizesList = queryList.list();
-            stringBuilder.append("```Топ_10_расчёсок:\n");
+            stringBuilder.append("`\nТоп 10 расчёсок:\n\n");
 
             stringBuilder.append(String.format(BotMessages.COMB_STATS_FORMAT.format(), "Фолофан", "Размер (см)"));
             stringBuilder.append(BotMessages.COMB_STATS_SEPARATOR.format());
@@ -54,7 +54,7 @@ public class CombStatsCommand implements CommandHandler {
                 }
                 stringBuilder.append(String.format(BotMessages.COMB_STATS_FORMAT.format(), userNameActual, u.getCombSize()));
             }
-            stringBuilder.append("```");
+            stringBuilder.append("`");
             bot.sendMessage(chatId, stringBuilder.toString());
 
 

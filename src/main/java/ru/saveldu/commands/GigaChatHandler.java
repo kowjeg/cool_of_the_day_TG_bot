@@ -26,8 +26,8 @@ public class GigaChatHandler implements CommandHandler {
         long chatId = update.getMessage().getChatId();
 
         try {
-            String answer = gigaChatApi.sendTextRequest(String.valueOf(chatId), update.getMessage().getText());
-            bot.sendMessage(chatId,answer);
+            String answer = gigaChatApi.sendTextRequest(String.valueOf(chatId), update);
+            bot.sendReplyMessage(chatId,answer, update.getMessage().getMessageId());
 
 
         } catch (Exception e) {

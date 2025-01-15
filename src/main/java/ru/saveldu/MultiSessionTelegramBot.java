@@ -107,6 +107,23 @@ public class MultiSessionTelegramBot extends TelegramLongPollingBot {
             e.printStackTrace();
         }
     }
+
+    public void sendReplyMessage(long chatId, String text, int replyToMessageId) {
+        SendMessage message = SendMessage.builder()
+                .chatId(chatId)
+                .text(text)
+                .parseMode("Markdown")
+                .replyToMessageId(replyToMessageId) //
+                .build();
+
+        try {
+            this.execute(message);
+        } catch (TelegramApiException e) {
+            e.printStackTrace();
+        }
+    }
+
+
     public Long getCurrentChatId() {
         if (updateEvent.get().hasMessage()) {
             return updateEvent.get().getMessage().getFrom().getId();
