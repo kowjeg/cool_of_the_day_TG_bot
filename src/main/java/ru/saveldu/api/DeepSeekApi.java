@@ -2,39 +2,30 @@ package ru.saveldu.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.*;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.saveldu.api.models.AccessTokenResponse;
 import ru.saveldu.api.models.MessageResponse;
 import ru.saveldu.api.models.TextRequest;
-import ru.saveldu.commands.CombStatsCommand;
-
 import javax.net.ssl.*;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
 import java.security.cert.X509Certificate;
 import java.util.List;
-import java.util.UUID;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class GigaChatApi implements ChatApi {
+public class DeepSeekApi implements ChatApi{
     private final OkHttpClient client;
-    private static String accessToken;
-    private long lastTimeGetBearerKey;
-    private final String apiKey = System.getenv("GIGACHAT_API_KEY");
+    private final String apiKey = System.getenv("DEEPSEEK_API_KEY");
     private static final String prompt;
-    private static final Logger logger = LoggerFactory.getLogger(CombStatsCommand.class);
-    private static final int MAX_HISTORY_LENGTH = 3;
+    private static final Logger logger = LoggerFactory.getLogger(DeepSeekApi.class);
+    private static final int MAX_HISTORY_LENGTH = 30;
 
     static {
         try {
 
-            var inputStream = GigaChatApi.class.getClassLoader().getResourceAsStream("prompt.txt");
+            var inputStream = DeepSeekApi.class.getClassLoader().getResourceAsStream("prompt.txt");
             if (inputStream == null) {
                 throw new RuntimeException("Resource not found: prompt.txt");
             }
@@ -47,7 +38,7 @@ public class GigaChatApi implements ChatApi {
     }
     private final Map<String, Deque<TextRequest.Message>> groupMessageHistory = new ConcurrentHashMap<>();
 
-    public GigaChatApi() throws Exception {
+    public DeepSeekApi() throws Exception {
         TrustManager[] trustAllCertificates = new TrustManager[]{
                 new X509TrustManager() {
                     public X509Certificate[] getAcceptedIssuers() {
@@ -78,7 +69,7 @@ public class GigaChatApi implements ChatApi {
         logger.info("Сообщение в [{}] {}: {}", update.getMessage().getChatId(), update.getMessage().getFrom().getUserName(),
                 update.getMessage().getText());
 
-        String accessToken = getAccessToken();
+
 
         Deque<TextRequest.Message> messageHistory = groupMessageHistory.computeIfAbsent(groupId, k -> new LinkedList<>());
         if (messageHistory.isEmpty()) {
@@ -95,21 +86,25 @@ public class GigaChatApi implements ChatApi {
         fullContext.add(0, new TextRequest.Message("system", prompt));
 
         MediaType mediaType = MediaType.parse("application/json");
-        TextRequest textRequest = new TextRequest("GigaChat", false, 0, fullContext);
+        TextRequest textRequest = new TextRequest("deepseek-chat", false, 0, fullContext);
 
         ObjectMapper objectMapper = new ObjectMapper();
         String jsonBody = objectMapper.writeValueAsString(textRequest);
 
         RequestBody body = RequestBody.create(mediaType, jsonBody);
         Request request = new Request.Builder()
-                .url("https://gigachat.devices.sberbank.ru/api/v1/chat/completions")
+                .url("https://api.deepseek.com/chat/completions")
                 .method("POST", body)
                 .addHeader("Content-Type", "application/json")
-                .addHeader("X-Session-ID", "71666d47-135d-4180-a7ca-e4af261d6bf9")
-                .addHeader("Authorization", "Bearer " + accessToken)
+                .addHeader("Accept", "application/json")
+                .addHeader("Authorization", "Bearer " + apiKey)
                 .build();
 
         Response response = client.newCall(request).execute();
+
+        OkHttpClient client = new OkHttpClient().newBuilder()
+                .build();
+
         if (!response.isSuccessful()) {
             logger.error("Error api response: {}", response.code());
             throw new RuntimeException("Request failed with code: " + response.code());
@@ -132,36 +127,5 @@ public class GigaChatApi implements ChatApi {
         return assistantMessage;
     }
 
-    public String getAccessToken() throws Exception {
-        //get new BearerKey after 25 minutes
-        if (lastTimeGetBearerKey > 0 && (System.currentTimeMillis() - lastTimeGetBearerKey) < 3600 * 450) {
-            return accessToken;
-        }
 
-        MediaType mediaType = MediaType.parse("application/x-www-form-urlencoded");
-        RequestBody body = RequestBody.create(mediaType, "scope=GIGACHAT_API_PERS");
-        String uuid = UUID.randomUUID().toString();
-        Request request = new Request.Builder()
-                .url("https://ngw.devices.sberbank.ru:9443/api/v2/oauth")
-                .method("POST", body)
-                .addHeader("RqUID", uuid)
-                .addHeader("Content-Type", "application/x-www-form-urlencoded")
-                .addHeader("Authorization", "Bearer " + apiKey)
-                .build();
-
-        Response response = client.newCall(request).execute();
-
-        if (!response.isSuccessful()) {
-            logger.error("Failed to get access key:  {}", response.code());
-            throw new RuntimeException("Request failed with code: " + response.code());
-        }
-
-        String jsonResponse = response.body().string();
-        ObjectMapper objectMapper = new ObjectMapper();
-        AccessTokenResponse accessTokenResponse = objectMapper.readValue(jsonResponse, AccessTokenResponse.class);
-
-        accessToken = accessTokenResponse.getAccessToken();
-        lastTimeGetBearerKey = System.currentTimeMillis();
-        return accessToken;
-    }
 }
