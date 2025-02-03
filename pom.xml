@@ -69,6 +69,12 @@
             <version>3.12.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.github.llewelll</groupId>
+            <artifactId>ChatGPTClient</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/p6spy/p6spy -->
         <dependency>
             <groupId>p6spy</groupId>

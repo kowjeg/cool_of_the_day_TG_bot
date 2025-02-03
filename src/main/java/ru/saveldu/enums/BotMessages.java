@@ -24,8 +24,8 @@ public enum BotMessages {
 
 
     COMB_STATS_HEADER("Топ расчесок:\n"),
-    COMB_STATS_FORMAT("%-20s %10s%n"),
-    COMB_STATS_SEPARATOR("---------------------------------\n"),
+    COMB_STATS_FORMAT("%-18s %5s%n"),
+    COMB_STATS_SEPARATOR("-----------------------\n"),
     SQL_ERROR("Произошла ошибка при получении данных."),
 
     ERROR_REG("Ошибка при регистрации. Попробуйте позже.");
