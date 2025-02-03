@@ -12,35 +12,39 @@ import ru.saveldu.enums.ChatApiType;
 public class AiChatHandler implements CommandHandler{
     private static final Logger logger = LoggerFactory.getLogger(AiChatHandler.class);
 
-    private  ChatApi chatApi;
+    private static ChatApi chatApi;
     private final MultiSessionTelegramBot bot;
-    private ChatApiType currentApi = ChatApiType.GIGACHAT;
+    private static ChatApiType currentApi;
 
     public AiChatHandler(ChatApiType apiType) throws Exception {
         this.bot = MyAmazingBot.getInstance();
+        currentApi = apiType;
         this.chatApi = createChatApi(apiType);
     }
 
-    public void switchApi() {
+    public static ChatApiType switchApi() {
         try {
+            logger.info("current api type: " + currentApi);
             if (currentApi == ChatApiType.GIGACHAT) {
                 currentApi = ChatApiType.DEEPSEEK;
-            } else if (currentApi == ChatApiType.DEEPSEEK) {
+            } else {
                 currentApi = ChatApiType.GIGACHAT;
             }
-
-            this.chatApi = createChatApi(currentApi);
+            chatApi = createChatApi(currentApi);
             logger.info("Switched API to: {}", currentApi);
         } catch (Exception e) {
             logger.error("Error switching API: {}", e.getMessage(), e);
         }
+        return currentApi;
     }
 
-    private ChatApi createChatApi(ChatApiType apiType) throws Exception {
+    private static ChatApi createChatApi(ChatApiType apiType) throws Exception {
         switch (apiType) {
             case GIGACHAT:
+                logger.info("Creating Gigachat API");
                 return new ru.saveldu.api.GigaChatApi();
             case DEEPSEEK:
+                logger.info("Creating DeepSeek API");
                 return new DeepSeekApi();
             default:
                 throw new IllegalArgumentException("Unsupported ChatApiType: " + apiType);

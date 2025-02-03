@@ -28,7 +28,7 @@ public class GigaChatApi implements ChatApi {
     private long lastTimeGetBearerKey;
     private final String apiKey = System.getenv("GIGACHAT_API_KEY");
     private static final String prompt;
-    private static final Logger logger = LoggerFactory.getLogger(CombStatsCommand.class);
+    private static final Logger logger = LoggerFactory.getLogger(GigaChatApi.class);
     private static final int MAX_HISTORY_LENGTH = 3;
 
     static {

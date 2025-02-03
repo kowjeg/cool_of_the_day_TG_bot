@@ -70,9 +70,9 @@
         </dependency>
 
         <dependency>
-            <groupId>com.openai</groupId>
-            <artifactId>openai-java</artifactId>
-            <version>0.16.0</version>
+            <groupId>io.github.llewelll</groupId>
+            <artifactId>ChatGPTClient</artifactId>
+            <version>1.0.0</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/p6spy/p6spy -->
