@@ -61,7 +61,7 @@ public class AiChatHandler implements CommandHandler{
             bot.sendReplyMessage(chatId, response, update.getMessage().getMessageId());
         } catch (Exception e) {
             logger.error("Error processing chat request: {}", e.getMessage(), e);
-            bot.sendMessage(chatId, "Произошла ошибка. Попробуйте позже.");
+            bot.sendMessage(chatId, "Нет настроения общаться. Весеннее обострение.");
         }
     }
 

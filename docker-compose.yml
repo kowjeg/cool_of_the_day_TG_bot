@@ -30,6 +30,9 @@ services:
       DB_USER: ${DB_USER}
       DB_PASS: ${DB_PASS}
       BOT_TOKEN: ${BOT_TOKEN}
+      BOT_USERNAME: ${BOT_USERNAME}
+      GIGACHAT_API_KEY: ${GIGACHAT_API_KEY}
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
     networks:
       - app-network
 

@@ -27,7 +27,7 @@ public class DeepSeekApi implements ChatApi{
 
     private static  String prompt;
     private static final Logger logger = LoggerFactory.getLogger(DeepSeekApi.class);
-    private static final int MAX_HISTORY_LENGTH = 30;
+    private static final int MAX_HISTORY_LENGTH = 10;
 
     static {
         try {
@@ -112,17 +112,24 @@ public class DeepSeekApi implements ChatApi{
 
         Response response = client.newCall(request).execute();
 
-        OkHttpClient client = new OkHttpClient().newBuilder()
-                .build();
+        if (response.body() == null) {
+            logger.error("response body is null");
+            throw new IOException("Empty response from DeepSeek API");
+        }
+
+        String jsonResponse = response.body().string();
+
+        if (jsonResponse.isEmpty()) {
+            logger.error("response body is empty");
+            throw new IOException("Empty response from DeepSeek API");
+        }
 
         if (!response.isSuccessful()) {
             logger.error("Error api response: {}", response.code());
             throw new RuntimeException("Request failed with code: " + response.code());
         }
 
-        String jsonResponse = response.body().string();
         MessageResponse messageResponse = objectMapper.readValue(jsonResponse, MessageResponse.class);
-
 
 
         String assistantMessage = messageResponse.getChoices().get(0).getMessage().getContent();
@@ -133,7 +140,6 @@ public class DeepSeekApi implements ChatApi{
         if (messageHistory.size() > MAX_HISTORY_LENGTH) {
             messageHistory.pollFirst();
         }
-
         return assistantMessage;
     }
 

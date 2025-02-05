@@ -67,6 +67,8 @@ public class MyAmazingBot extends MultiSessionTelegramBot {
 
 
             try {
+
+                System.out.println(message.getReplyToMessage().getFrom().getUserName());
                 if (message.isReply() && message.getReplyToMessage().getFrom().getUserName().equals(getBotUsername())) {
                     aiChatHandler.execute(update);
                     return;
