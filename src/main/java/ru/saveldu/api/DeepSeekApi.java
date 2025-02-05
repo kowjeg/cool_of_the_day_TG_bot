@@ -20,6 +20,8 @@ public class DeepSeekApi implements ChatApi{
     private final OkHttpClient client;
     private final String apiKey = System.getenv("DEEPSEEK_API_KEY");
 
+
+
     public static void setPrompt(String prompt) {
         DeepSeekApi.prompt = prompt;
         System.out.println(prompt);
@@ -27,7 +29,15 @@ public class DeepSeekApi implements ChatApi{
 
     private static  String prompt;
     private static final Logger logger = LoggerFactory.getLogger(DeepSeekApi.class);
-    private static final int MAX_HISTORY_LENGTH = 10;
+//    private static final int MAX_HISTORY_LENGTH = 10;
+    private final long CHAT_SESSION_TIMEOUT = TimeUnit.MINUTES.toMillis(15); // время чата с ботом, после таймаута история сообщений очищается
+    // дипсик кэш истории работает так - если начало истории нового json совпадает с прошлым 1 в 1 - срабатывает кэш, поэтому перезаписывать первые
+    //сообщения будет некорректно, кэш не будет работаьт. ограничения на количество сообщений в сессии общения нет.
+
+    private final Map<String, Deque<TextRequest.Message>> groupMessageHistory = new ConcurrentHashMap<>(); // история сообщений для каждой группы
+
+    private final Map<String, Long> chatTimeout = new ConcurrentHashMap<>(); // мапа с chatId, lastIteractionTime
+
 
     static {
         try {
@@ -37,31 +47,13 @@ public class DeepSeekApi implements ChatApi{
                 throw new RuntimeException("Resource not found: prompt.txt");
             }
 
-
             prompt = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-    private final Map<String, Deque<TextRequest.Message>> groupMessageHistory = new ConcurrentHashMap<>();
 
     public DeepSeekApi() throws Exception {
-//        TrustManager[] trustAllCertificates = new TrustManager[]{
-//                new X509TrustManager() {
-//                    public X509Certificate[] getAcceptedIssuers() {
-//                        return new X509Certificate[0];
-//                    }
-//
-//                    public void checkClientTrusted(X509Certificate[] certs, String authType) {
-//                    }
-//
-//                    public void checkServerTrusted(X509Certificate[] certs, String authType) {
-//                    }
-//                }
-//        };
-//
-//        SSLContext sslContext = SSLContext.getInstance("TLS");
-//        sslContext.init(null, trustAllCertificates, new java.security.SecureRandom());
 
         this.client = new OkHttpClient.Builder().
                 connectTimeout(30, TimeUnit.SECONDS)  // Время ожидания подключения
@@ -74,27 +66,31 @@ public class DeepSeekApi implements ChatApi{
 
     public String sendTextRequest(String groupId, Update update) throws Exception {
 
+        resetHistoryIfTimeout(groupId);
+        chatTimeout.put(groupId, System.currentTimeMillis());
+
         String userMessage = update.getMessage().getText();
         String replyToText = update.getMessage().getReplyToMessage().getText();
         logger.info("Сообщение в [{}] {}: {}", update.getMessage().getChatId(), update.getMessage().getFrom().getUserName(),
                 update.getMessage().getText());
 
-
-
         Deque<TextRequest.Message> messageHistory = groupMessageHistory.computeIfAbsent(groupId, k -> new LinkedList<>());
-        if (messageHistory.isEmpty()) {
 
-            messageHistory.addLast(new TextRequest.Message("assistant", replyToText));
-        }
-        messageHistory.addLast(new TextRequest.Message("user", userMessage));
-        if (messageHistory.size() > MAX_HISTORY_LENGTH) {
-            messageHistory.pollFirst();
-        }
+        buildMessageHistory(messageHistory, replyToText, userMessage);
 
         List<TextRequest.Message> fullContext = new ArrayList<>(messageHistory);
 
         fullContext.add(0, new TextRequest.Message("system", prompt));
 
+        String assistantMessage = apiRequestMethod(fullContext);
+        logger.info("Сообщение Бота в [{}]: {}", update.getMessage().getChatId(), assistantMessage);
+
+//        messageHistory.addLast(new TextRequest.Message("assistant", assistantMessage));
+
+        return assistantMessage;
+    }
+
+    private String apiRequestMethod(List<TextRequest.Message> fullContext) throws IOException {
         MediaType mediaType = MediaType.parse("application/json");
         TextRequest textRequest = new TextRequest("deepseek-chat", false, 0, fullContext);
 
@@ -131,16 +127,26 @@ public class DeepSeekApi implements ChatApi{
 
         MessageResponse messageResponse = objectMapper.readValue(jsonResponse, MessageResponse.class);
 
-
         String assistantMessage = messageResponse.getChoices().get(0).getMessage().getContent();
-        logger.info("Сообщение Бота в [{}]: {}", update.getMessage().getChatId(), assistantMessage);
-
-
-        messageHistory.addLast(new TextRequest.Message("assistant", assistantMessage));
-        if (messageHistory.size() > MAX_HISTORY_LENGTH) {
-            messageHistory.pollFirst();
-        }
         return assistantMessage;
+    }
+
+    private static void buildMessageHistory(Deque<TextRequest.Message> messageHistory, String replyToText, String userMessage) {
+//        if(messageHistory.isEmpty()) {
+            messageHistory.addLast(new TextRequest.Message("assistant", replyToText));
+//        } // добавляю только в пустую историю реплаемое сообщение бота
+
+        messageHistory.addLast(new TextRequest.Message("user", userMessage));
+    }
+
+    private void resetHistoryIfTimeout(String groupId) {
+        long currentTime = System.currentTimeMillis();
+        long lasIteractionTime = chatTimeout.getOrDefault(groupId, 0L);
+
+        if(currentTime - lasIteractionTime > CHAT_SESSION_TIMEOUT) {
+            groupMessageHistory.remove(groupId);
+            logger.info("История в [{}] очищена, т.к. таймаут был больше {} минут", groupId, TimeUnit.MILLISECONDS.toMinutes(CHAT_SESSION_TIMEOUT));
+        }
     }
 
 
