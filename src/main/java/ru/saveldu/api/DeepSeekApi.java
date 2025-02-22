@@ -90,7 +90,7 @@ public class DeepSeekApi implements ChatApi{
         return assistantMessage;
     }
 
-    private String apiRequestMethod(List<TextRequest.Message> fullContext) throws IOException {
+    public String apiRequestMethod(List<TextRequest.Message> fullContext) throws IOException {
         MediaType mediaType = MediaType.parse("application/json");
         TextRequest textRequest = new TextRequest("deepseek-chat", false, 0, fullContext);
 
