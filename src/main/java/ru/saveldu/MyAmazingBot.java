@@ -25,7 +25,6 @@ public class MyAmazingBot extends MultiSessionTelegramBot {
     private HashMap<String, CommandHandler> commands = new HashMap<>();
 
 
-
     public static MyAmazingBot getInstance() {
         if (instance == null) {
             try {
@@ -73,9 +72,11 @@ public class MyAmazingBot extends MultiSessionTelegramBot {
 
         Message message = update.getMessage();
         String messageText = message.getText();
+        Long chatId = message.getChatId();
+        boolean isPrivateChat = message.getChat().isUserChat(); // группа или личный чат
 
         try {
-            // Если сообщение не команда, добавляем в историю чата
+            //если не команда добавляем в историю чата
             if (!messageText.startsWith("/")) {
                 summaryCommandHandler.addMessage(update);
 
@@ -87,21 +88,35 @@ public class MyAmazingBot extends MultiSessionTelegramBot {
                 return;
             }
 
-              String command = messageText.split("[ @]")[0];
-            CommandHandler handler = commands.get(command);
 
+            String[] parts = messageText.split(" ", 2); // ["/play@buzzcatbot"]
+            String rawCommand = parts[0]; // "/play@buzzcatbot"
+            String[] commandParts = rawCommand.split("@");
+
+            String command = commandParts[0]; // "/play"
+            String mentionedBot = (commandParts.length > 1) ? commandParts[1] : null;
+
+
+            if (!isPrivateChat) {
+                if (mentionedBot == null || !mentionedBot.equalsIgnoreCase(getBotUsername())) {
+                    return;
+                }
+            }
+
+            // Проверяем, есть ли такая команда в списке
+            CommandHandler handler = commands.get(command);
             if (handler != null) {
                 handler.execute(update);
             } else {
-                logger.warn("Неизвестная команда: {}", command);
-                sendMessage(message.getChatId(), "Неизвестная команда. Попробуйте /help.");
+                logger.warn("Неизвестная команда: {}", rawCommand);
+                sendMessage(chatId, "Неизвестная команда.");
             }
 
         } catch (Exception e) {
             logger.error("Ошибка обработки сообщения: ", e);
         }
 //
-        }
+    }
 
 
 }

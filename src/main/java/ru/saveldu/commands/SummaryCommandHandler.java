@@ -26,11 +26,18 @@ public class SummaryCommandHandler implements CommandHandler{
     public void addMessage(Update update) {
         String chatId = update.getMessage().getChatId().toString();
         String userName = update.getMessage().getFrom().getFirstName();
-        String newMessage =  userName + ": " + update.getMessage().getText();
+        String newMessage = userName + ": " + update.getMessage().getText();
 
         groupMessageHistory.computeIfAbsent(chatId, k -> new LinkedList<>());
-        groupMessageHistory.get(chatId).addLast(new TextRequest.Message("user", newMessage));
+        Deque<TextRequest.Message> messageQueue = groupMessageHistory.get(chatId);
 
+
+        messageQueue.addLast(new TextRequest.Message("user", newMessage));
+
+
+        if (messageQueue.size() > 1000) {
+            messageQueue.removeFirst();
+        }
     }
 
 
@@ -38,36 +45,46 @@ public class SummaryCommandHandler implements CommandHandler{
         this.chatApi = chatApi;
     }
 
+
     @Override
     public void execute(Update update) throws SQLException, IOException {
         String groupId = update.getMessage().getChatId().toString();
         String[] getSize = update.getMessage().getText().split(" ");
-        if (getSize.length < 2) {
-            bot.sendMessage(update.getMessage().getChatId(), "Ошибка: укажите количество сообщений для анализа!");
-            return;
+        int getSizeInteger = 100;
+
+        if (getSize.length >= 2) {
+            try {
+                getSizeInteger = Integer.parseInt(getSize[1]);
+            } catch (NumberFormatException e) {
+                bot.sendMessage(update.getMessage().getChatId(), "Ошибка: введите корректное число!");
+                return;
+            }
         }
-        Integer getSizeInteger;
-        try {
-            getSizeInteger = Integer.parseInt(getSize[1]);
-        } catch (NumberFormatException e) {
-            bot.sendMessage(update.getMessage().getChatId(), "Ошибка: введите корректное число!");
+        if (getSizeInteger > 1000 || getSizeInteger < 1) {
+            bot.sendMessage(update.getMessage().getChatId(), "Суммаризация может быть по минимум 1 сообщению, максимум по 1000");
             return;
         }
 
-        Deque<TextRequest.Message> messageHistory = groupMessageHistory.get(groupId);
+        Deque<TextRequest.Message> messageHistory = groupMessageHistory.getOrDefault(groupId, new LinkedList<>());
+        int actualHistorySize = messageHistory.size();
+
+
+        int messagesCount = Math.min(getSizeInteger, actualHistorySize);
+
         List<TextRequest.Message> fullContext = new ArrayList<>(messageHistory);
-
-        fullContext.add(0, new TextRequest.Message("system", prompt));
-
-
+        int fromIndex = Math.max(fullContext.size() - messagesCount, 0);
+        List<TextRequest.Message> lastMessages = fullContext.subList(fromIndex, fullContext.size());
 
 
-        String answer = chatApi.apiRequestMethod(fullContext);
+        List<TextRequest.Message> contextWithPrompt = new ArrayList<>();
+        contextWithPrompt.add(new TextRequest.Message("system", prompt));
+        contextWithPrompt.addAll(lastMessages);
+
+        String answer = chatApi.apiRequestMethod(contextWithPrompt);
 
 
-        bot.sendMessage(update.getMessage().getChatId(), answer);
+        String responseMessage = "Суммаризация по " + messagesCount + " сообщениям:\n" + answer;
 
-
-
+        bot.sendMessage(update.getMessage().getChatId(), responseMessage);
     }
 }
