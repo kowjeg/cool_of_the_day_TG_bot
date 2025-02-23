@@ -1,5 +1,7 @@
 package ru.saveldu.commands;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.saveldu.MultiSessionTelegramBot;
@@ -15,13 +17,23 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 public class SummaryCommandHandler implements CommandHandler{
+    private static boolean isActive;
 
     private static final Map<String, Deque<TextRequest.Message>> groupMessageHistory = new ConcurrentHashMap<>();
     private final MultiSessionTelegramBot bot = MyAmazingBot.getInstance();
+    private static final Logger logger = LoggerFactory.getLogger(SummaryCommandHandler.class);
 
     private String prompt = "Сделай краткое саммари чата, опиши кто что делал:";
 
     private DeepSeekApi chatApi;
+
+    public static boolean isActive() {
+        return isActive;
+    }
+
+    public static void setIsActive(boolean isActive) {
+        SummaryCommandHandler.isActive = isActive;
+    }
 
     public void addMessage(Update update) {
         String chatId = update.getMessage().getChatId().toString();
@@ -43,11 +55,15 @@ public class SummaryCommandHandler implements CommandHandler{
 
     public SummaryCommandHandler(DeepSeekApi chatApi) {
         this.chatApi = chatApi;
+        isActive = true;
     }
 
 
     @Override
     public void execute(Update update) throws SQLException, IOException {
+        if(!isActive) {
+            return;
+        }
         String groupId = update.getMessage().getChatId().toString();
         String[] getSize = update.getMessage().getText().split(" ");
         int getSizeInteger = 100;
@@ -57,6 +73,7 @@ public class SummaryCommandHandler implements CommandHandler{
                 getSizeInteger = Integer.parseInt(getSize[1]);
             } catch (NumberFormatException e) {
                 bot.sendMessage(update.getMessage().getChatId(), "Ошибка: введите корректное число!");
+                logger.info("Неправильно обработана команда, возможно было передано не число вторым параметром");
                 return;
             }
         }
@@ -81,6 +98,7 @@ public class SummaryCommandHandler implements CommandHandler{
         contextWithPrompt.addAll(lastMessages);
 
         String answer = chatApi.apiRequestMethod(contextWithPrompt);
+        logger.info("Суммаризация по " + messagesCount + " сообщениям в " + update.getMessage().getChat().getFirstName());
 
 
         String responseMessage = "Суммаризация по " + messagesCount + " сообщениям:\n" + answer;

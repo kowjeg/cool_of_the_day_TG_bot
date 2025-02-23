@@ -54,6 +54,7 @@ public class MyAmazingBot extends MultiSessionTelegramBot {
         commands.put("/changepromptds", new ChangePromptDSCommand());
         commands.put("/switchai", new SwitchAICommand());
         commands.put("/summary", new SummaryCommandHandler(new DeepSeekApi()));
+        commands.put("/switchsummary", new SummaryCommandSwitcher());
         try {
             aiChatHandler = new AiChatHandler(ChatApiType.DEEPSEEK);
             summaryCommandHandler = new SummaryCommandHandler(new DeepSeekApi());
