@@ -1,19 +1,25 @@
 package ru.saveldu.commands;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 
-import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.saveldu.MultiSessionTelegramBot;
 import ru.saveldu.MyAmazingBot;
 import ru.saveldu.api.GigaChatApi;
+
+@Component
 
 public class GigaChatHandler implements CommandHandler {
 
     private GigaChatApi gigaChatApi = null;
-    private final MultiSessionTelegramBot bot  = MyAmazingBot.getInstance();
+    private final MyAmazingBot bot;
 
-    public GigaChatHandler() {
+    @Autowired
+    @Lazy
+    public GigaChatHandler(MyAmazingBot bot) {
+        this.bot = bot;
         try {
             this.gigaChatApi = new GigaChatApi();
         } catch (Exception e) {
@@ -34,5 +40,10 @@ public class GigaChatHandler implements CommandHandler {
             e.printStackTrace();
 
         }
+    }
+
+    @Override
+    public String getName() {
+        return this.getClass().getSimpleName();
     }
 }

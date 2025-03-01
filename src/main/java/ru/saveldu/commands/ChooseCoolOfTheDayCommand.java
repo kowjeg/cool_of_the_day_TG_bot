@@ -3,25 +3,34 @@ package ru.saveldu.commands;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.query.Query;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
+
 import ru.saveldu.MyAmazingBot;
 import ru.saveldu.db.HibernateUtil;
 import ru.saveldu.entities.CoolOfTheDay;
 import ru.saveldu.entities.Stat;
 import ru.saveldu.entities.User;
 import ru.saveldu.enums.BotMessages;
-import ru.saveldu.MultiSessionTelegramBot;
 
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Random;
 
+@Component
+
 public class ChooseCoolOfTheDayCommand implements CommandHandler {
 
-    private final MultiSessionTelegramBot bot = MyAmazingBot.getInstance();
 
-    public ChooseCoolOfTheDayCommand() {
+    private final MyAmazingBot bot;
+
+    @Autowired
+    @Lazy
+    public ChooseCoolOfTheDayCommand(MyAmazingBot bot) {
+        this.bot = bot;
     }
 
     @Override
@@ -99,5 +108,10 @@ public class ChooseCoolOfTheDayCommand implements CommandHandler {
             throw new RuntimeException(e);
         }
 
+    }
+
+    @Override
+    public String getName() {
+        return "cooloftheday";
     }
 }

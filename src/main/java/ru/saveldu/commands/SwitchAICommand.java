@@ -2,32 +2,52 @@ package ru.saveldu.commands;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.saveldu.MultiSessionTelegramBot;
 import ru.saveldu.MyAmazingBot;
+import ru.saveldu.api.ChatApi;
 import ru.saveldu.enums.ChatApiType;
 
-import java.sql.SQLException;
+@Component
 
-public class SwitchAICommand implements CommandHandler{
+public class SwitchAICommand implements CommandHandler {
 
-    private final MultiSessionTelegramBot bot  = MyAmazingBot.getInstance();
-    private static final Logger logger = LoggerFactory.getLogger(SwitchAICommand.class);
-    @Override
-    public void execute(Update update) throws SQLException {
-        if(isUserAdmin(update.getMessage().getFrom().getId())) {
-            ChatApiType newApiType = AiChatHandler.switchApi();
-            String newApiTypeString = newApiType.toString();
-            bot.sendMessage(update.getMessage().getChatId(), "new API: " + newApiTypeString);
-            logger.info("switch API: " + newApiTypeString);
+    private final MyAmazingBot bot;
+    private final AiChatHandler aiChatHandler;
+    private final ChatApi gigaChatApi;
+    private final ChatApi deepSeekApi;
 
-        } else {
-            bot.sendMessage(update.getMessage().getChatId(), "You are not admin");
-        }
-
+    @Autowired
+    @Lazy
+    public SwitchAICommand(MyAmazingBot bot, AiChatHandler aiChatHandler, ChatApi gigaChatApi, ChatApi deepSeekApi) {
+        this.bot = bot;
+        this.aiChatHandler = aiChatHandler;
+        this.gigaChatApi = gigaChatApi;
+        this.deepSeekApi = deepSeekApi;
     }
 
-    private boolean isUserAdmin(long usedId) {
-        return usedId == 128697674;
+    private static final Logger logger = LoggerFactory.getLogger(SwitchAICommand.class);
+
+    @Override
+    public void execute(Update update) {
+        if (isUserAdmin(update.getMessage().getFrom().getId())) {
+            ChatApiType newApiType = aiChatHandler.switchApi();
+            String newApiTypeString = newApiType.toString();
+            bot.sendMessage(update.getMessage().getChatId(), "New API: " + newApiTypeString);
+            logger.info("Switched API: " + newApiTypeString);
+        } else {
+            bot.sendMessage(update.getMessage().getChatId(), "You are not an admin.");
+        }
+    }
+
+    @Override
+    public String getName() {
+        return "aiswitch";
+    }
+
+    private boolean isUserAdmin(long userId) {
+        return userId == 128697674;
     }
 }

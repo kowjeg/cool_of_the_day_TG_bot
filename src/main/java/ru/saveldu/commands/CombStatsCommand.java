@@ -4,28 +4,41 @@ import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.saveldu.MultiSessionTelegramBot;
+
 import ru.saveldu.MyAmazingBot;
 import ru.saveldu.db.HibernateUtil;
-import ru.saveldu.entities.Stat;
+
 import ru.saveldu.entities.User;
 import ru.saveldu.enums.BotMessages;
 
-import java.sql.*;
+
 import java.util.List;
 
+@Component
+
 public class CombStatsCommand implements CommandHandler {
-    private final MultiSessionTelegramBot bot = MyAmazingBot.getInstance();
+    private final MyAmazingBot bot;
     private static final int MAX_LENGTH_USERNAME = 14;
     private static final int TOP_COMB_LIST_SIZE = 10;
 
-
-
     private static final Logger logger = LoggerFactory.getLogger(CombStatsCommand.class);
 
-    public CombStatsCommand() {
 
+
+    public String getName() {
+        return "topcombs";
+    }
+
+
+
+    @Autowired
+    @Lazy
+    public CombStatsCommand(MyAmazingBot bot) {
+        this.bot = bot;
     }
 
     @Override

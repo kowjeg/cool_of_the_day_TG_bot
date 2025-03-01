@@ -3,8 +3,10 @@ package ru.saveldu.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.*;
 
+import org.checkerframework.checker.units.qual.C;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.saveldu.api.models.AccessTokenResponse;
 import ru.saveldu.api.models.MessageResponse;
@@ -22,6 +24,7 @@ import java.util.UUID;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Component
 public class GigaChatApi implements ChatApi {
     private final OkHttpClient client;
     private static String accessToken;

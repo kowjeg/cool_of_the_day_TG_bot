@@ -2,21 +2,30 @@ package ru.saveldu.commands;
 
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
+
 import ru.saveldu.MyAmazingBot;
 import ru.saveldu.db.HibernateUtil;
 import ru.saveldu.entities.User;
 import ru.saveldu.enums.BotMessages;
-import ru.saveldu.MultiSessionTelegramBot;
-import java.sql.Connection;
+
+
 import java.sql.SQLException;
+
+
+@Component
 
 public class RegistrationCommand implements CommandHandler{
 
+    private final MyAmazingBot bot;
 
-    private final MultiSessionTelegramBot bot  = MyAmazingBot.getInstance();
-
-    public RegistrationCommand() {
+    @Autowired
+    @Lazy
+    public RegistrationCommand(MyAmazingBot bot) {
+        this.bot = bot;
     }
 
     private boolean isUserAlreadyRegistered(Session session, long userId, long chatId) {
@@ -53,5 +62,10 @@ public class RegistrationCommand implements CommandHandler{
             e.printStackTrace();
             bot.sendMessage(chatId, BotMessages.ERROR_REG.format());
         }
+    }
+
+    @Override
+    public String getName() {
+        return "registration";
     }
 }

@@ -3,27 +3,37 @@ package ru.saveldu.commands;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
+
 import ru.saveldu.MyAmazingBot;
 import ru.saveldu.db.HibernateUtil;
 import ru.saveldu.entities.User;
 import ru.saveldu.enums.BotMessages;
-import ru.saveldu.MultiSessionTelegramBot;
+
 
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Random;
 
+@Component
+
 public class PlayCombGameCommand implements CommandHandler {
 
 
-    private final MultiSessionTelegramBot bot = MyAmazingBot.getInstance();
+    private final MyAmazingBot bot;
 
     private static final int MAX_COMB_CHANGE_SIZE = 14;
     private static final int MIN_COMB_CHANGE_SIZE = -9;
 
-    public PlayCombGameCommand() {}
+    @Autowired
+    @Lazy
+    public PlayCombGameCommand(MyAmazingBot bot) {
+        this.bot = bot;
+    }
 
     @Override
     public void execute(Update update) throws SQLException {
@@ -65,6 +75,11 @@ public class PlayCombGameCommand implements CommandHandler {
 
 
         }
+    }
+
+    @Override
+    public String getName() {
+        return "play";
     }
 
     @Nullable
