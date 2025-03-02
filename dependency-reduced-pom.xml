@@ -51,9 +51,24 @@
       <scope>compile</scope>
     </dependency>
   </dependencies>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${spring.boot.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
   <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <hibernate.version>6.2.9.Final</hibernate.version>
     <maven.compiler.target>21</maven.compiler.target>
     <maven.compiler.source>21</maven.compiler.source>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <spring.version>6.2.3</spring.version>
+    <spring.boot.version>3.2.3</spring.boot.version>
+    <mysql.version>8.0.33</mysql.version>
   </properties>
 </project>

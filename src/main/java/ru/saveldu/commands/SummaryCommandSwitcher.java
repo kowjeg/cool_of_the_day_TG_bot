@@ -13,19 +13,16 @@ import java.sql.SQLException;
 
 
 @Component
-
 public class SummaryCommandSwitcher implements CommandHandler{
 
     private final MyAmazingBot bot;
     private static final Logger logger = LoggerFactory.getLogger(SummaryCommandSwitcher.class);
-
 
     @Autowired
     @Lazy
     public SummaryCommandSwitcher(MyAmazingBot bot) {
         this.bot = bot;
     }
-
     public void execute(Update update) throws SQLException {
         if(isUserAdmin(update.getMessage().getFrom().getId())) {
             if (SummaryCommandHandler.isActive()) {
@@ -39,7 +36,6 @@ public class SummaryCommandSwitcher implements CommandHandler{
         } else {
             bot.sendMessage(update.getMessage().getChatId(), "You are not admin");
         }
-
     }
 
     @Override

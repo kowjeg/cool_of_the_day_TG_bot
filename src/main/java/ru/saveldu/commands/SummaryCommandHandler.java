@@ -16,10 +16,8 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-
 @Component
-
-public class SummaryCommandHandler implements CommandHandler{
+public class SummaryCommandHandler implements CommandHandler {
     private static boolean isActive;
 
     private static final Map<String, Deque<TextRequest.Message>> groupMessageHistory = new ConcurrentHashMap<>();
@@ -27,7 +25,6 @@ public class SummaryCommandHandler implements CommandHandler{
     private static final Logger logger = LoggerFactory.getLogger(SummaryCommandHandler.class);
 
     private String prompt = "Сделай краткое саммари чата, опиши кто что делал:";
-
     private DeepSeekApi chatApi;
 
     @Autowired
@@ -37,7 +34,6 @@ public class SummaryCommandHandler implements CommandHandler{
         this.chatApi = chatApi;
         isActive = true;
     }
-
 
     public static boolean isActive() {
         return isActive;
@@ -54,10 +50,7 @@ public class SummaryCommandHandler implements CommandHandler{
 
         groupMessageHistory.computeIfAbsent(chatId, k -> new LinkedList<>());
         Deque<TextRequest.Message> messageQueue = groupMessageHistory.get(chatId);
-
-
         messageQueue.addLast(new TextRequest.Message("user", newMessage));
-
 
         if (messageQueue.size() > 1000) {
             messageQueue.removeFirst();
@@ -65,12 +58,9 @@ public class SummaryCommandHandler implements CommandHandler{
     }
 
 
-
-
-
     @Override
     public void execute(Update update) throws SQLException, IOException {
-        if(!isActive) {
+        if (!isActive) {
             return;
         }
         String groupId = update.getMessage().getChatId().toString();
@@ -94,13 +84,11 @@ public class SummaryCommandHandler implements CommandHandler{
         Deque<TextRequest.Message> messageHistory = groupMessageHistory.getOrDefault(groupId, new LinkedList<>());
         int actualHistorySize = messageHistory.size();
 
-
         int messagesCount = Math.min(getSizeInteger, actualHistorySize);
 
         List<TextRequest.Message> fullContext = new ArrayList<>(messageHistory);
         int fromIndex = Math.max(fullContext.size() - messagesCount, 0);
         List<TextRequest.Message> lastMessages = fullContext.subList(fromIndex, fullContext.size());
-
 
         List<TextRequest.Message> contextWithPrompt = new ArrayList<>();
         contextWithPrompt.add(new TextRequest.Message("system", prompt));
@@ -109,9 +97,7 @@ public class SummaryCommandHandler implements CommandHandler{
         String answer = chatApi.apiRequestMethod(contextWithPrompt);
         logger.info("Суммаризация по " + messagesCount + " сообщениям в " + update.getMessage().getChat().getFirstName());
 
-
         String responseMessage = "Суммаризация по " + messagesCount + " сообщениям:\n" + answer;
-
         bot.sendMessage(update.getMessage().getChatId(), responseMessage);
     }
 

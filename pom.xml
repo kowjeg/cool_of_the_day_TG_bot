@@ -8,14 +8,28 @@
     <artifactId>TGBotCoolGuyOfTheDay</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <hibernate.version>6.2.9.Final</hibernate.version>
+        <mysql.version>8.0.33</mysql.version>
+        <spring.boot.version>3.2.3</spring.boot.version>
+        <spring.version>6.2.3</spring.version>
     </properties>
-    <dependencies>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring.boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
+    <dependencies>
         <dependency>
             <groupId>org.telegram</groupId>
             <artifactId>telegrambots</artifactId>
@@ -37,39 +51,17 @@
             <artifactId>telegrambots-client</artifactId>
             <version>8.2.0</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.telegram/telegrambots-meta -->
+
         <dependency>
             <groupId>org.telegram</groupId>
             <artifactId>telegrambots-meta</artifactId>
             <version>8.2.0</version>
         </dependency>
 
-
-
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-core</artifactId>
-            <version>5.6.15.Final</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-hikaricp</artifactId>
-            <version>5.6.15.Final</version>
-        </dependency>
-
-
-        <dependency>
-            <groupId>com.zaxxer</groupId>
-            <artifactId>HikariCP</artifactId>
-            <version>4.0.3</version>
-        </dependency>
-
-
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.33</version> <!-- Проверьте последнюю версию -->
+
         </dependency>
         <dependency>
             <groupId>org.apache.maven.plugins</groupId>
@@ -77,19 +69,39 @@
             <version>3.12.0</version>
         </dependency>
 
-
-
-        <!-- https://mvnrepository.com/artifact/p6spy/p6spy -->
+        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-web -->
         <dependency>
-            <groupId>p6spy</groupId>
-            <artifactId>p6spy</artifactId>
-            <version>3.9.1</version>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+            <version>3.4.1</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <version>3.4.1</version>
+        </dependency>
+
+        <!-- Database & ORM -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${mysql.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>6.3.1.Final</version>
+        </dependency>
+
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+            <version>3.1.0</version>
         </dependency>
 
 
-        <!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-core -->
-
-        <!-- https://mvnrepository.com/artifact/org.projectlombok/lombok -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -102,20 +114,28 @@
             <version>4.5.13</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.5.16</version>
-            <scope>compile</scope>
-        </dependency>
+<!--        &lt;!&ndash; https://mvnrepository.com/artifact/ch.qos.logback/logback-classic &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>ch.qos.logback</groupId>-->
+<!--            <artifactId>logback-classic</artifactId>-->
+<!--            <version>1.5.16</version>-->
+<!--            <scope>compile</scope>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>org.yaml</groupId>
             <artifactId>snakeyaml</artifactId>
             <version>2.0</version>
         </dependency>
-
-
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>2.3.1</version>
+        </dependency>
 
     </dependencies>
     <build>

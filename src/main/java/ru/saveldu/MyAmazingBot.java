@@ -1,6 +1,6 @@
 package ru.saveldu;
 
-import org.hibernate.SessionFactory;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.saveldu.commands.AiChatHandler;
 import ru.saveldu.commands.CommandHandler;
 import ru.saveldu.commands.SummaryCommandHandler;
-import ru.saveldu.db.HibernateUtil;
+
 
 import java.util.List;
 import java.util.Map;
@@ -28,10 +28,10 @@ import java.util.stream.Collectors;
 
 @Component
 public class MyAmazingBot implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
-    private static final Logger logger = LoggerFactory.getLogger(MyAmazingBot.class);
+//    private static final Logger logger = LoggerFactory.getLogger(MyAmazingBot.class);
     private final TelegramClient telegramClient;
     private Map<String, CommandHandler> commands;
-    private SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+
     @Autowired
     private SummaryCommandHandler summaryCommandHandler;
 
@@ -108,7 +108,7 @@ public class MyAmazingBot implements SpringLongPollingBot, LongPollingSingleThre
 
             return chat.getUserName();
         } catch (Exception e) {
-            logger.warn("Не удалось получить username для userId {}: {}", userId, e.getMessage());
+//            logger.warn("Не удалось получить username для userId {}: {}", userId, e.getMessage());
             return null;
         }
     }
@@ -156,12 +156,12 @@ public class MyAmazingBot implements SpringLongPollingBot, LongPollingSingleThre
             if (handler != null) {
                 handler.execute(update);
             } else {
-                logger.warn("Неизвестная команда: {}", rawCommand);
+//                logger.warn("Неизвестная команда: {}", rawCommand);
                 sendMessage(chatId, "Неизвестная команда.");
             }
 
         } catch (Exception e) {
-            logger.error("Ошибка обработки сообщения: ", e);
+//            logger.error("Ошибка обработки сообщения: ", e);
         }
     }
 }
