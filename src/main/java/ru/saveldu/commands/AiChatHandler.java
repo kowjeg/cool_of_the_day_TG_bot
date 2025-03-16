@@ -1,5 +1,6 @@
 package ru.saveldu.commands;
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +13,10 @@ import ru.saveldu.api.ChatApi;
 import ru.saveldu.enums.ChatApiType;
 
 @Component
+@Slf4j
+
 public class AiChatHandler implements CommandHandler {
-//    private static final Logger logger = LoggerFactory.getLogger(AiChatHandler.class);
+
     private ChatApi chatApi;
     private final ChatApi gigaChatApi;
     private final ChatApi deepSeekApi;
@@ -31,10 +34,11 @@ public class AiChatHandler implements CommandHandler {
         this.gigaChatApi = gigaChatApi;
         this.deepSeekApi = deepSeekApi;
         this.bot = bot;
+        chatApi = deepSeekApi;
     }
 
     public ChatApiType switchApi() {
-//        logger.info("Current API type: {}", currentApi);
+        log.info("Current API type: {}", currentApi);
         if (currentApi == ChatApiType.GIGACHAT) {
             currentApi = ChatApiType.DEEPSEEK;
             chatApi = deepSeekApi;
@@ -42,7 +46,7 @@ public class AiChatHandler implements CommandHandler {
             currentApi = ChatApiType.GIGACHAT;
             chatApi = gigaChatApi;
         }
-//        logger.info("Switched API to: {}", currentApi);
+        log.info("Switched API to: {}", currentApi);
         return currentApi;
     }
 
@@ -53,7 +57,7 @@ public class AiChatHandler implements CommandHandler {
             String response = chatApi.sendTextRequest(String.valueOf(chatId), update);
             bot.sendReplyMessage(chatId, response, update.getMessage().getMessageId());
         } catch (Exception e) {
-//            logger.error("Error processing chat request: {}", e.getMessage(), e);
+            log.error("Error processing chat request: {}", e.getMessage(), e);
             bot.sendMessage(chatId, "Нет настроения общаться. Весеннее обострение.");
         }
     }

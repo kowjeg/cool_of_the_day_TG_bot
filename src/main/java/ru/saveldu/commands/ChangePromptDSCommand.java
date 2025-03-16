@@ -1,5 +1,6 @@
 package ru.saveldu.commands;
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,9 +14,9 @@ import ru.saveldu.api.DeepSeekApi;
 import java.sql.SQLException;
 
 @Component
-
+@Slf4j
 public class ChangePromptDSCommand implements CommandHandler{
-    private static final Logger logger = LoggerFactory.getLogger(ChangePromptDSCommand.class);
+
 
 
     @Autowired
@@ -31,7 +32,7 @@ public class ChangePromptDSCommand implements CommandHandler{
         if (update.getMessage().getFrom().getId()==128697674) {
             DeepSeekApi.setPrompt(update.getMessage().getText());
             bot.sendMessage(update.getMessage().getChatId(),"Prompt updated!");
-            logger.info("changed DeepSeek prompt. new prompt:" + update.getMessage().getText());
+            log.info("changed DeepSeek prompt. new prompt:{}", update.getMessage().getText());
 
         }
         else {

@@ -5,22 +5,11 @@
         <appender-ref ref="FILE" />
     </root>
 
-<!--    <logger name="org.hibernate.SQL" level="DEBUG" additivity="false">-->
-<!--        <appender-ref ref="CONSOLE" />-->
-<!--        <appender-ref ref="FILE" />-->
-<!--    </logger>-->
+    <logger name="org.hibernate.SQL" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" />
+    </logger>
 
-<!--    &lt;!&ndash; Логи P6Spy &ndash;&gt;-->
-<!--    <logger name="com.p6spy" level="DEBUG" additivity="false">-->
-<!--        <appender-ref ref="CONSOLE" />-->
-<!--        <appender-ref ref="FILE" />-->
-<!--    </logger>-->
-
-
-<!--    <logger name="com.p6spy" level="DEBUG" additivity="false">-->
-<!--        <appender-ref ref="CONSOLE" />-->
-<!--        <appender-ref ref="FILE" />-->
-<!--    </logger>-->
 
     <!-- Логи в консоль -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">

@@ -1,5 +1,6 @@
 package ru.saveldu.commands;
 
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,12 +17,13 @@ import ru.saveldu.repositories.UserRepository;
 import java.util.List;
 
 @Component
+
 public class CombStatsCommand implements CommandHandler {
     private final MyAmazingBot bot;
     private static final int MAX_LENGTH_USERNAME = 14;
     private static final int TOP_COMB_LIST_SIZE = 10;
 
-    private static final Logger logger = LoggerFactory.getLogger(CombStatsCommand.class);
+
 
     private final UserRepository userRepository;
 
@@ -39,6 +41,8 @@ public class CombStatsCommand implements CommandHandler {
 
         StringBuilder stringBuilder = new StringBuilder();
 
+
+        //top 10 request
         List<User> combSizesList = userRepository.findTop10ByChatIdAndCombSizeIsNotNullOrderByCombSizeDesc(chatId);
 
         if (combSizesList.isEmpty()) {

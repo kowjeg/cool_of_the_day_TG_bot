@@ -1,6 +1,8 @@
 package ru.saveldu;
 
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
+@Slf4j
 public class MyAmazingBot implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
 //    private static final Logger logger = LoggerFactory.getLogger(MyAmazingBot.class);
     private final TelegramClient telegramClient;
@@ -45,7 +48,7 @@ public class MyAmazingBot implements SpringLongPollingBot, LongPollingSingleThre
     @Autowired
     public void setCommands(List<CommandHandler> commandHandlers) {
         this.commands = commandHandlers.stream()
-                .collect(Collectors.toMap(handler -> "/" + handler.getName().replace("CommandHandler", "").toLowerCase(),
+                .collect(Collectors.toMap(handler -> "/" + handler.getName().toLowerCase(),
                         Function.identity()));
     }
 
@@ -156,12 +159,12 @@ public class MyAmazingBot implements SpringLongPollingBot, LongPollingSingleThre
             if (handler != null) {
                 handler.execute(update);
             } else {
-//                logger.warn("Неизвестная команда: {}", rawCommand);
+                log.warn("Неизвестная команда: {}", rawCommand);
                 sendMessage(chatId, "Неизвестная команда.");
             }
 
         } catch (Exception e) {
-//            logger.error("Ошибка обработки сообщения: ", e);
+            log.error("Ошибка обработки сообщения: ", e);
         }
     }
 }
