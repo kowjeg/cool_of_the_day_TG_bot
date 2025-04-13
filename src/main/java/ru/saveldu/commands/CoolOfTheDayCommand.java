@@ -12,6 +12,7 @@ import ru.saveldu.exceptions.COTDAlreadyChosen;
 import ru.saveldu.exceptions.NoUserInChat;
 import ru.saveldu.services.CoolOfTheDayService;
 import ru.saveldu.services.MessageService;
+import ru.saveldu.services.MessageServiceImpl;
 
 @Component
 @Slf4j
@@ -21,7 +22,7 @@ public class CoolOfTheDayCommand implements CommandHandler {
     private final MessageService messageService;
 
     @Autowired
-    @Lazy
+
     public CoolOfTheDayCommand(CoolOfTheDayService coolOfTheDayService, MessageService messageService) {
         this.coolOfTheDayService = coolOfTheDayService;
         this.messageService = messageService;

@@ -33,10 +33,10 @@ public class CoolOfTheDayService {
     public User chooseCoolOfTheDay(long chatId) {
         LocalDate today = LocalDate.now();
 
-        Optional<CoolOfTheDay> existingCoolOfTheDay = coolOfTheDayRepository.findByChatIdAndDate(chatId, today);
-        if (existingCoolOfTheDay.isPresent()) {
-            String test = existingCoolOfTheDay.get().getUserName();
-            throw new COTDAlreadyChosen(BotMessages.COOL_DAY_ALREADY_CHOSEN.format(test));
+        Optional<CoolOfTheDay> coolOfTheDayOpt = coolOfTheDayRepository.findByChatIdAndDate(chatId, today);
+        if (coolOfTheDayOpt.isPresent()) {
+            String winnerName = coolOfTheDayOpt.get().getUserName();
+            throw new COTDAlreadyChosen(BotMessages.COOL_DAY_ALREADY_CHOSEN.format(winnerName));
         }
 
         List<User> usersInChat = userRepository.getUsersByChatId(chatId);
@@ -45,8 +45,8 @@ public class CoolOfTheDayService {
         }
 
         Random random = new Random();
-        int winnerNumber = random.nextInt(usersInChat.size());
-        User winner = usersInChat.get(winnerNumber);
+        int winnerIndex = random.nextInt(usersInChat.size());
+        User winner = usersInChat.get(winnerIndex);
 
         CoolOfTheDay coolOfTheDay = new CoolOfTheDay();
         coolOfTheDay.setDate(today);
@@ -54,7 +54,6 @@ public class CoolOfTheDayService {
         coolOfTheDay.setChatId(winner.getChatId());
         coolOfTheDay.setUserName(winner.getUserName());
         coolOfTheDayRepository.save(coolOfTheDay);
-
 
         updateStats(chatId, winner, today.getYear());
 

@@ -36,6 +36,7 @@ public class GigaChatApi implements ChatApi {
 
     static {
         try {
+            // test
 
             var inputStream = GigaChatApi.class.getClassLoader().getResourceAsStream("prompt.txt");
             if (inputStream == null) {

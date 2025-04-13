@@ -1,10 +1,7 @@
 package ru.saveldu;
 
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
@@ -18,9 +15,10 @@ import org.telegram.telegrambots.meta.api.objects.chat.Chat;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
-import ru.saveldu.commands.AiChatHandler;
+//import ru.saveldu.commands.AiChatHandler;
 import ru.saveldu.commands.CommandHandler;
-import ru.saveldu.commands.SummaryCommandHandler;
+//import ru.saveldu.commands.SummaryCommandHandler;
+import ru.saveldu.services.MessageService;
 
 
 import java.util.List;
@@ -30,18 +28,21 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
+
 public class MyAmazingBot implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
 //    private static final Logger logger = LoggerFactory.getLogger(MyAmazingBot.class);
     private final TelegramClient telegramClient;
     private Map<String, CommandHandler> commands;
+    private final MessageService messageService;
 
-    @Autowired
-    private SummaryCommandHandler summaryCommandHandler;
+//    @Autowired
+//    private SummaryCommandHandler summaryCommandHandler;
+//
+//    @Autowired
+//    private AiChatHandler aiChatHandler;
 
-    @Autowired
-    private AiChatHandler aiChatHandler;
-
-    public MyAmazingBot() {
+    public MyAmazingBot(MessageService messageService) {
+        this.messageService = messageService;
         telegramClient = new OkHttpTelegramClient(getBotToken());
     }
 
@@ -51,6 +52,8 @@ public class MyAmazingBot implements SpringLongPollingBot, LongPollingSingleThre
                 .collect(Collectors.toMap(handler -> "/" + handler.getName().toLowerCase(),
                         Function.identity()));
     }
+
+
 
     @Override
     public String getBotToken() {
@@ -62,59 +65,7 @@ public class MyAmazingBot implements SpringLongPollingBot, LongPollingSingleThre
         return this;
     }
 
-    public void sendMessage(long chatId, String text) {
-        SendMessage message = SendMessage.builder()
-                .chatId(chatId)
-                .text(text)
-                .parseMode("Markdown")
-                .build();
-        try {
-            telegramClient.execute(message);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
-    }
 
-    public void sendReplyMessage(long chatId, String text, int replyToMessageId) {
-        SendMessage message = SendMessage.builder()
-                .chatId(chatId)
-                .text(text)
-                .parseMode("Markdown")
-                .replyToMessageId(replyToMessageId) //
-                .build();
-
-        try {
-            telegramClient.execute(message);
-        } catch (TelegramApiException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public String formatUserMention(String usName, long userId) {
-        // Проверяем, есть ли у победителя юзернейм
-        String userName = getUserNameById(userId);
-        if (userName != null) {
-
-            return "@" + userName;
-        }
-
-        return "[" + usName + "](tg://user?id=" + userId + ")";
-    }
-
-    private String getUserNameById(long userId) {
-        try {
-            GetChat getChat = new GetChat(String.valueOf(userId));
-            getChat.setChatId(userId);
-
-
-            Chat chat = telegramClient.execute(getChat);
-
-            return chat.getUserName();
-        } catch (Exception e) {
-//            logger.warn("Не удалось получить username для userId {}: {}", userId, e.getMessage());
-            return null;
-        }
-    }
 
     @Override
     public void consume(Update update) {
@@ -130,12 +81,12 @@ public class MyAmazingBot implements SpringLongPollingBot, LongPollingSingleThre
         try {
 //            if no command - add to chat history
             if (!messageText.startsWith("/")) {
-                summaryCommandHandler.addMessage(update);
+//                summaryCommandHandler.addMessage(update);
 
                 // if reply to bot message - execute on deepseek
                 System.out.println(message.getReplyToMessage().getFrom().getUserName());
                 if (message.isReply() && message.getReplyToMessage().getFrom().getUserName().equalsIgnoreCase(System.getenv("BOT_USERNAME"))) {
-                    aiChatHandler.execute(update);
+//                    aiChatHandler.execute(update);
                 }
 
                 return;
@@ -160,11 +111,12 @@ public class MyAmazingBot implements SpringLongPollingBot, LongPollingSingleThre
                 handler.execute(update);
             } else {
                 log.warn("Неизвестная команда: {}", rawCommand);
-                sendMessage(chatId, "Неизвестная команда.");
+                messageService.sendMessage(chatId, "Неизвестная команда.");
             }
 
         } catch (Exception e) {
             log.error("Ошибка обработки сообщения: ", e);
         }
     }
+
 }
