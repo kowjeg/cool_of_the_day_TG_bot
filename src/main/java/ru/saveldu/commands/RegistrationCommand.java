@@ -10,6 +10,7 @@ import ru.saveldu.entities.User;
 import ru.saveldu.enums.BotMessages;
 import ru.saveldu.repositories.UserRepository;
 import ru.saveldu.services.MessageService;
+import ru.saveldu.services.RegistrationService;
 
 import java.sql.SQLException;
 import java.util.Optional;
@@ -20,13 +21,7 @@ import java.util.Optional;
 public class RegistrationCommand implements CommandHandler {
 
     private final MessageService messageService;
-    private final UserRepository userRepository;
-
-    private boolean isUserAlreadyRegistered(long userId, long chatId) {
-        Optional<User> user = userRepository.findByChatIdAndUserId(chatId, userId);
-        return user.isPresent();
-    }
-
+    private final RegistrationService registrationService;
     @Override
     @Transactional
     public void execute(Update update) {
@@ -40,23 +35,12 @@ public class RegistrationCommand implements CommandHandler {
         String userName = update.getMessage().getFrom().getFirstName();
 
         String userNameToString = messageService.formatUserMention(userName, userId);
-        if (isUserAlreadyRegistered(userId, chatId)) {
+        if (registrationService.isUserAlreadyRegistered(userId, chatId)) {
             messageService.sendMessage(chatId, BotMessages.ALREADY_REGISTERED.format(userNameToString));
             return;
         }
-
-        User newUser = createUser(userId, chatId, userName);
-        userRepository.save(newUser);
-
-        messageService.sendMessage(chatId, BotMessages.REGISTER_SUCCESS.format(userName));
-    }
-
-    private static User createUser(long userId, long chatId, String userName) {
-        User newUser = new User();
-        newUser.setUserId(userId);
-        newUser.setChatId(chatId);
-        newUser.setUserName(userName);
-        return newUser;
+        registrationService.registerUser(userId, chatId, userName);
+                messageService.sendMessage(chatId, BotMessages.REGISTER_SUCCESS.format(userName));
     }
 
     @Override
