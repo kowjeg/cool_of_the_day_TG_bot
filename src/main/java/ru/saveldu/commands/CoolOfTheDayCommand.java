@@ -1,5 +1,6 @@
 package ru.saveldu.commands;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -16,18 +17,11 @@ import ru.saveldu.services.MessageServiceImpl;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class CoolOfTheDayCommand implements CommandHandler {
 
     private final CoolOfTheDayService coolOfTheDayService;
     private final MessageService messageService;
-
-    @Autowired
-
-    public CoolOfTheDayCommand(CoolOfTheDayService coolOfTheDayService, MessageService messageService) {
-        this.coolOfTheDayService = coolOfTheDayService;
-        this.messageService = messageService;
-
-    }
 
     @Override
     public void execute(Update update) {

@@ -16,6 +16,7 @@ import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 //import ru.saveldu.commands.AiChatHandler;
+import ru.saveldu.commands.AiChatHandler;
 import ru.saveldu.commands.CommandHandler;
 //import ru.saveldu.commands.SummaryCommandHandler;
 import ru.saveldu.services.MessageService;
@@ -38,8 +39,8 @@ public class MyAmazingBot implements SpringLongPollingBot, LongPollingSingleThre
 //    @Autowired
 //    private SummaryCommandHandler summaryCommandHandler;
 //
-//    @Autowired
-//    private AiChatHandler aiChatHandler;
+    @Autowired
+    private AiChatHandler aiChatHandler;
 
     public MyAmazingBot(MessageService messageService) {
         this.messageService = messageService;
@@ -86,7 +87,7 @@ public class MyAmazingBot implements SpringLongPollingBot, LongPollingSingleThre
                 // if reply to bot message - execute on deepseek
                 System.out.println(message.getReplyToMessage().getFrom().getUserName());
                 if (message.isReply() && message.getReplyToMessage().getFrom().getUserName().equalsIgnoreCase(System.getenv("BOT_USERNAME"))) {
-//                    aiChatHandler.execute(update);
+                    aiChatHandler.execute(update);
                 }
 
                 return;
