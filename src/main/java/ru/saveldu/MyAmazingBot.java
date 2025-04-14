@@ -1,5 +1,6 @@
 package ru.saveldu;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -19,21 +20,12 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class MyAmazingBot implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
-
     private Map<String, CommandHandler> commands;
     private final MessageService messageService;
-
-    @Autowired
-    private SummaryCommandHandler summaryCommandHandler;
-
-    @Autowired
-    private AiChatHandler aiChatHandler;
-
-    public MyAmazingBot(MessageService messageService) {
-        this.messageService = messageService;
-
-    }
+    private final SummaryCommandHandler summaryCommandHandler;
+    private final AiChatHandler aiChatHandler;
 
     @Autowired
     public void setCommands(List<CommandHandler> commandHandlers) {
