@@ -1,20 +1,13 @@
 package ru.saveldu.commands;
 
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.objects.Update;
-
-import ru.saveldu.MyAmazingBot;
 import ru.saveldu.entities.User;
 import ru.saveldu.enums.BotMessages;
 import ru.saveldu.repositories.UserRepository;
 import ru.saveldu.services.MessageService;
-
 import java.util.List;
 
 @Component

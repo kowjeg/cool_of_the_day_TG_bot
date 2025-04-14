@@ -1,27 +1,17 @@
 package ru.saveldu;
 
-
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
 import org.telegram.telegrambots.longpolling.starter.SpringLongPollingBot;
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
-import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChat;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.chat.Chat;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import org.telegram.telegrambots.meta.generics.TelegramClient;
-//import ru.saveldu.commands.AiChatHandler;
 import ru.saveldu.commands.AiChatHandler;
 import ru.saveldu.commands.CommandHandler;
-//import ru.saveldu.commands.SummaryCommandHandler;
+import ru.saveldu.commands.SummaryCommandHandler;
 import ru.saveldu.services.MessageService;
-
-
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -29,22 +19,20 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-
 public class MyAmazingBot implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
-//    private static final Logger logger = LoggerFactory.getLogger(MyAmazingBot.class);
-    private final TelegramClient telegramClient;
+
     private Map<String, CommandHandler> commands;
     private final MessageService messageService;
 
-//    @Autowired
-//    private SummaryCommandHandler summaryCommandHandler;
-//
+    @Autowired
+    private SummaryCommandHandler summaryCommandHandler;
+
     @Autowired
     private AiChatHandler aiChatHandler;
 
     public MyAmazingBot(MessageService messageService) {
         this.messageService = messageService;
-        telegramClient = new OkHttpTelegramClient(getBotToken());
+
     }
 
     @Autowired
@@ -53,8 +41,6 @@ public class MyAmazingBot implements SpringLongPollingBot, LongPollingSingleThre
                 .collect(Collectors.toMap(handler -> "/" + handler.getName().toLowerCase(),
                         Function.identity()));
     }
-
-
 
     @Override
     public String getBotToken() {
@@ -66,24 +52,19 @@ public class MyAmazingBot implements SpringLongPollingBot, LongPollingSingleThre
         return this;
     }
 
-
-
     @Override
     public void consume(Update update) {
         if (!update.hasMessage() || !update.getMessage().hasText()) {
             return;
         }
-
         Message message = update.getMessage();
         String messageText = message.getText();
         Long chatId = message.getChatId();
             boolean isPrivateChat = message.getChat().isUserChat(); // group or private chat
-
         try {
 //            if no command - add to chat history
             if (!messageText.startsWith("/")) {
-//                summaryCommandHandler.addMessage(update);
-
+                summaryCommandHandler.addMessage(update);
                 // if reply to bot message - execute on deepseek
                 System.out.println(message.getReplyToMessage().getFrom().getUserName());
                 if (message.isReply() && message.getReplyToMessage().getFrom().getUserName().equalsIgnoreCase(System.getenv("BOT_USERNAME"))) {
@@ -105,7 +86,6 @@ public class MyAmazingBot implements SpringLongPollingBot, LongPollingSingleThre
                     return;
                 }
             }
-
             // Проверяем, есть ли такая команда в списке
             CommandHandler handler = commands.get(command);
             if (handler != null) {
@@ -114,7 +94,6 @@ public class MyAmazingBot implements SpringLongPollingBot, LongPollingSingleThre
                 log.warn("Неизвестная команда: {}", rawCommand);
                 messageService.sendMessage(chatId, "Неизвестная команда.");
             }
-
         } catch (Exception e) {
             log.error("Ошибка обработки сообщения: ", e);
         }

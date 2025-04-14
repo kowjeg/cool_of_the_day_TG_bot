@@ -2,18 +2,13 @@ package ru.saveldu.commands;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.saveldu.entities.User;
 import ru.saveldu.enums.BotMessages;
-import ru.saveldu.repositories.UserRepository;
 import ru.saveldu.services.MessageService;
 import ru.saveldu.services.RegistrationService;
 
-import java.sql.SQLException;
-import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor

@@ -26,7 +26,6 @@ public class SwitchAICommand implements CommandHandler {
             messageService.sendMessage(update.getMessage().getChatId(), "You are not an admin.");
         }
     }
-
     @Override
     public String getName() {
         return "aiswitch";
