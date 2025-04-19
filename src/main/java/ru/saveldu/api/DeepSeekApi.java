@@ -1,9 +1,8 @@
 package ru.saveldu.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.saveldu.api.models.MessageResponse;
@@ -15,28 +14,22 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-
 @Component
-public class DeepSeekApi implements ChatApi{
+@Slf4j
+public class DeepSeekApi implements ChatApi {
     private final OkHttpClient client;
     private final String apiKey = System.getenv("DEEPSEEK_API_KEY");
+    private static String prompt;
+    private final long CHAT_SESSION_TIMEOUT = TimeUnit.MINUTES.toMillis(15); // время чата с ботом, после таймаута история сообщений очищается
+    // дипсик кэш истории работает так - если начало истории нового json совпадает с прошлым 1 в 1 - срабатывает кэш, поэтому перезаписывать первые
+    //сообщения будет некорректно, кэш не будет работаьт. ограничения на количество сообщений в сессии общения нет.
+    private final Map<String, Deque<TextRequest.Message>> groupMessageHistory = new ConcurrentHashMap<>(); // история сообщений для каждой группы
+    private final Map<String, Long> chatTimeout = new ConcurrentHashMap<>(); // мапа с chatId, lastIterationTime
 
     public static void setPrompt(String prompt) {
         DeepSeekApi.prompt = prompt;
         System.out.println(prompt);
     }
-
-    private static  String prompt;
-    private static final Logger logger = LoggerFactory.getLogger(DeepSeekApi.class);
-//    private static final int MAX_HISTORY_LENGTH = 10;
-    private final long CHAT_SESSION_TIMEOUT = TimeUnit.MINUTES.toMillis(15); // время чата с ботом, после таймаута история сообщений очищается
-    // дипсик кэш истории работает так - если начало истории нового json совпадает с прошлым 1 в 1 - срабатывает кэш, поэтому перезаписывать первые
-    //сообщения будет некорректно, кэш не будет работаьт. ограничения на количество сообщений в сессии общения нет.
-
-    private final Map<String, Deque<TextRequest.Message>> groupMessageHistory = new ConcurrentHashMap<>(); // история сообщений для каждой группы
-
-    private final Map<String, Long> chatTimeout = new ConcurrentHashMap<>(); // мапа с chatId, lastIteractionTime
-
 
     static {
         try {
@@ -58,7 +51,6 @@ public class DeepSeekApi implements ChatApi{
                 connectTimeout(30, TimeUnit.SECONDS)  // Время ожидания подключения
                 .readTimeout(60, TimeUnit.SECONDS)     // Время ожидания ответа
                 .writeTimeout(60, TimeUnit.SECONDS)
-//                .sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) trustAllCertificates[0])
                 .hostnameVerifier((hostname, session) -> true)
                 .build();
     }
@@ -70,21 +62,16 @@ public class DeepSeekApi implements ChatApi{
 
         String userMessage = update.getMessage().getText();
         String replyToText = update.getMessage().getReplyToMessage().getText();
-        logger.info("Сообщение в [{}] {}: {}", update.getMessage().getChatId(), update.getMessage().getFrom().getUserName(),
-                update.getMessage().getText());
+        String chatId = update.getMessage().getChatId().toString();
+        String userName = update.getMessage().getFrom().getUserName();
 
+        log.info("Сообщение в [{}] {}: {}", chatId, userName, userMessage);
         Deque<TextRequest.Message> messageHistory = groupMessageHistory.computeIfAbsent(groupId, k -> new LinkedList<>());
-
         buildMessageHistory(messageHistory, replyToText, userMessage);
-
         List<TextRequest.Message> fullContext = new ArrayList<>(messageHistory);
-
         fullContext.add(0, new TextRequest.Message("system", prompt));
-
         String assistantMessage = apiRequestMethod(fullContext);
-        logger.info("Сообщение Бота в [{}]: {}", update.getMessage().getChatId(), assistantMessage);
-
-//        messageHistory.addLast(new TextRequest.Message("assistant", assistantMessage));
+        log.info("Сообщение Бота в [{}]: {}", chatId, assistantMessage);
 
         return assistantMessage;
     }
@@ -104,47 +91,46 @@ public class DeepSeekApi implements ChatApi{
                 .addHeader("Accept", "application/json")
                 .addHeader("Authorization", "Bearer " + apiKey)
                 .build();
+        try (Response response = client.newCall(request).execute()) {
+            if (response.body() == null) {
+                log.error("response body is null");
+                throw new IOException("Empty response from DeepSeek API");
+            }
 
-        Response response = client.newCall(request).execute();
+            String jsonResponse = response.body().string();
 
-        if (response.body() == null) {
-            logger.error("response body is null");
-            throw new IOException("Empty response from DeepSeek API");
+            if (jsonResponse.isEmpty()) {
+                log.error("response body is empty");
+                throw new IOException("Empty response from DeepSeek API");
+            }
+
+            if (!response.isSuccessful()) {
+                log.error("Error api response: {}", response.code());
+                throw new RuntimeException("Request failed with code: " + response.code());
+            }
+
+            MessageResponse messageResponse = objectMapper.readValue(jsonResponse, MessageResponse.class);
+
+            String assistantMessage = messageResponse.getChoices().get(0).getMessage().getContent();
+            return assistantMessage;
         }
 
-        String jsonResponse = response.body().string();
 
-        if (jsonResponse.isEmpty()) {
-            logger.error("response body is empty");
-            throw new IOException("Empty response from DeepSeek API");
-        }
-
-        if (!response.isSuccessful()) {
-            logger.error("Error api response: {}", response.code());
-            throw new RuntimeException("Request failed with code: " + response.code());
-        }
-
-        MessageResponse messageResponse = objectMapper.readValue(jsonResponse, MessageResponse.class);
-
-        String assistantMessage = messageResponse.getChoices().get(0).getMessage().getContent();
-        return assistantMessage;
     }
 
     private static void buildMessageHistory(Deque<TextRequest.Message> messageHistory, String replyToText, String userMessage) {
-//        if(messageHistory.isEmpty()) {
-            messageHistory.addLast(new TextRequest.Message("assistant", replyToText));
-//        } // добавляю только в пустую историю реплаемое сообщение бота
 
+        messageHistory.addLast(new TextRequest.Message("assistant", replyToText));
         messageHistory.addLast(new TextRequest.Message("user", userMessage));
     }
 
     private void resetHistoryIfTimeout(String groupId) {
         long currentTime = System.currentTimeMillis();
-        long lasIteractionTime = chatTimeout.getOrDefault(groupId, 0L);
+        long lasIterationTime = chatTimeout.getOrDefault(groupId, 0L);
 
-        if(currentTime - lasIteractionTime > CHAT_SESSION_TIMEOUT) {
+        if (currentTime - lasIterationTime > CHAT_SESSION_TIMEOUT) {
             groupMessageHistory.remove(groupId);
-            logger.info("История в [{}] очищена, т.к. таймаут был больше {} минут", groupId, TimeUnit.MILLISECONDS.toMinutes(CHAT_SESSION_TIMEOUT));
+            log.info("История в [{}] очищена, т.к. таймаут был больше {} минут", groupId, TimeUnit.MILLISECONDS.toMinutes(CHAT_SESSION_TIMEOUT));
         }
     }
 

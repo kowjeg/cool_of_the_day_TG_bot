@@ -1,6 +1,7 @@
 package ru.saveldu.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 
 
@@ -25,13 +26,14 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
+@Slf4j
 public class GigaChatApi implements ChatApi {
     private final OkHttpClient client;
     private static String accessToken;
     private long lastTimeGetBearerKey;
     private final String apiKey = System.getenv("GIGACHAT_API_KEY");
     private static final String prompt;
-    private static final Logger logger = LoggerFactory.getLogger(GigaChatApi.class);
+
     private static final int MAX_HISTORY_LENGTH = 3;
 
     static {
@@ -48,6 +50,7 @@ public class GigaChatApi implements ChatApi {
             throw new RuntimeException(e);
         }
     }
+
     private final Map<String, Deque<TextRequest.Message>> groupMessageHistory = new ConcurrentHashMap<>();
 
     public GigaChatApi() throws Exception {
@@ -77,8 +80,10 @@ public class GigaChatApi implements ChatApi {
     public String sendTextRequest(String groupId, Update update) throws Exception {
 
         String userMessage = update.getMessage().getText();
-        String replyToText = update.getMessage().getReplyToMessage().getText();
-        logger.info("Сообщение в [{}] {}: {}", update.getMessage().getChatId(), update.getMessage().getFrom().getUserName(),
+        String replyToText = (update.getMessage().getReplyToMessage() != null)
+                ? update.getMessage().getReplyToMessage().getText()
+                : "";
+        log.info("Сообщение в [{}] {}: {}", update.getMessage().getChatId(), update.getMessage().getFrom().getUserName(),
                 update.getMessage().getText());
 
         String accessToken = getAccessToken();
@@ -114,7 +119,7 @@ public class GigaChatApi implements ChatApi {
 
         Response response = client.newCall(request).execute();
         if (!response.isSuccessful()) {
-            logger.error("Error api response: {}", response.code());
+            log.error("Error api response: {}", response.code());
             throw new RuntimeException("Request failed with code: " + response.code());
         }
 
@@ -122,9 +127,8 @@ public class GigaChatApi implements ChatApi {
         MessageResponse messageResponse = objectMapper.readValue(jsonResponse, MessageResponse.class);
 
 
-
         String assistantMessage = messageResponse.getChoices().get(0).getMessage().getContent();
-        logger.info("Сообщение Бота в [{}]: {}", update.getMessage().getChatId(), assistantMessage);
+        log.info("Сообщение Бота в [{}]: {}", update.getMessage().getChatId(), assistantMessage);
 
 
         messageHistory.addLast(new TextRequest.Message("assistant", assistantMessage));
@@ -155,7 +159,7 @@ public class GigaChatApi implements ChatApi {
         Response response = client.newCall(request).execute();
 
         if (!response.isSuccessful()) {
-            logger.error("Failed to get access key:  {}", response.code());
+            log.error("Failed to get access key:  {}", response.code());
             throw new RuntimeException("Request failed with code: " + response.code());
         }
 
