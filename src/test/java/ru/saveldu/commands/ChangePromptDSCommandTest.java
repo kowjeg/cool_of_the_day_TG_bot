@@ -22,8 +22,7 @@ class ChangePromptDSCommandTest {
     private ChangePromptDSCommand command;
 
     @Test
-    void shouldUpdatePromptForAdmin() throws SQLException {
-        // Arrange
+    void update_Prompt_if_Admin() throws SQLException {
         Update update = mock(Update.class);
         Message message = mock(Message.class);
         User user = mock(User.class);
@@ -34,16 +33,13 @@ class ChangePromptDSCommandTest {
         when(message.getText()).thenReturn("new prompt text");
         when(message.getChatId()).thenReturn(123L);
 
-        // Act
         command.execute(update);
 
-        // Assert
         verify(messageService).sendMessage(123L, "Prompt updated!");
     }
 
     @Test
-    void shouldRejectNonAdmin() throws SQLException {
-        // Arrange
+    void deny_Change_Prompt_if_Not_Admin() throws SQLException {
         Update update = mock(Update.class);
         Message message = mock(Message.class);
         User user = mock(User.class);
@@ -53,10 +49,8 @@ class ChangePromptDSCommandTest {
         when(user.getId()).thenReturn(999L); // non-admin ID
         when(message.getChatId()).thenReturn(123L);
 
-        // Act
         command.execute(update);
 
-        // Assert
         verify(messageService).sendMessage(123L, "not admin");
     }
 

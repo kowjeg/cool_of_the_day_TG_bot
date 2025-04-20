@@ -105,7 +105,7 @@ class CoolOfTheDayServiceTest {
     }
 
     @Test
-    void shouldChooseRandomWinnerFromMultipleUsers() {
+    void random_Winner_From_Multiple_Users() {
         long chatId = 123L;
         LocalDate today = LocalDate.now();
         User user1 = new User();
