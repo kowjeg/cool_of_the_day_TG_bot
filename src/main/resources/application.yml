@@ -2,9 +2,9 @@ spring:
   application:
     name: tg-cooloftheday
   datasource:
-    url: jdbc:mysql://localhost:3307/telegram_bot
-    password: root
-    username: root
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    password: ${DB_PASS}
+    username: ${DB_USER}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     show-sql: true
