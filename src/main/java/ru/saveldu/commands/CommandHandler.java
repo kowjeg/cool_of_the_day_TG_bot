@@ -7,4 +7,5 @@ import java.sql.SQLException;
 
 public interface CommandHandler {
     void execute(Update update) throws SQLException, IOException;
+    String getName();
 }

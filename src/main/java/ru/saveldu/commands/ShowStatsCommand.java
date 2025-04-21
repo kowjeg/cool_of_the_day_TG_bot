@@ -1,50 +1,48 @@
 package ru.saveldu.commands;
 
-import org.hibernate.Session;
-import org.hibernate.Transaction;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.saveldu.MyAmazingBot;
-import ru.saveldu.db.HibernateUtil;
 import ru.saveldu.entities.Stat;
 import ru.saveldu.enums.BotMessages;
-import ru.saveldu.MultiSessionTelegramBot;
+import ru.saveldu.repositories.StatRepository;
+import ru.saveldu.services.MessageService;
+
 
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.List;
 
-public class ShowStatsCommand implements CommandHandler{
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class ShowStatsCommand implements CommandHandler {
 
-    private final MultiSessionTelegramBot bot  = MyAmazingBot.getInstance();
-    private static final int TOP_COOLS_LIST = 10;
+    private final MessageService messageService;
+    private final StatRepository statRepository;
 
-    public ShowStatsCommand() {
+    @Override
+    @Transactional
+    public void execute(Update update) throws SQLException {
+        if (update.getMessage() == null) {
+            log.warn("Update without message received: {}", update);
+            return;
+        }
+        long chatId = update.getMessage().getChatId();
+        LocalDate today = LocalDate.now();
+        int currentYear = today.getYear();
+        List<Stat> statsList = statRepository.findByChatIdAndYear(chatId,currentYear);
+        StringBuilder statMessage = new StringBuilder(BotMessages.STATS_HEADER.format(String.valueOf(currentYear))).append("\n");
+        for (Stat s : statsList) {
+            statMessage.append(s.getUserName()).append(" - ").append(s.getCountWins()).append(" раз\n");
+        }
+        messageService.sendMessage(chatId, statMessage.toString());
     }
     @Override
-    public void execute(Update update) throws SQLException {
-
-
-        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            long chatId = update.getMessage().getChatId();
-            LocalDate today = LocalDate.now();
-            int currentYear = today.getYear();
-
-            String statsHql = "FROM Stat where chatId = :chatId AND year = :year order by countWins desc";
-            List<Stat> statList = session.createQuery(statsHql,Stat.class)
-                    .setParameter("chatId", chatId)
-                    .setParameter("year", currentYear)
-                    .setMaxResults(TOP_COOLS_LIST)
-                    .list()
-                    ;
-
-            StringBuilder statMessage = new StringBuilder(BotMessages.STATS_HEADER.format(String.valueOf(currentYear))).append("\n");
-//            int participants = statList.size();
-            for (Stat s : statList) {
-                statMessage.append(s.getUserName()).append(" - ").append(s.getCountWins()).append(" раз\n");
-
-            }
-//            statMessage.append("\nВсего фолофанов: " + participants);
-            bot.sendMessage(chatId,statMessage.toString());
-        }
+    public String getName() {
+        return "stats";
     }
 }
+

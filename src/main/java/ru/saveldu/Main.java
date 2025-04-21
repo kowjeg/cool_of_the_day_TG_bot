@@ -1,34 +1,15 @@
 package ru.saveldu;
 
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
-import org.telegram.telegrambots.meta.TelegramBotsApi;
-import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
-import ru.saveldu.db.HibernateUtil;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
+@SpringBootApplication(scanBasePackages = "ru.saveldu")
+@EnableJpaRepositories(basePackages = "ru.saveldu.repositories")
+@EntityScan(basePackages = "ru.saveldu.entities")
 public class Main {
     public static void main(String[] args) {
-        // Using try-with-resources to allow autoclose to run upon finishing
-        try (TelegramBotsLongPollingApplication botsApplication = new TelegramBotsLongPollingApplication()) {
-            Thread.sleep(4000);
-            HibernateUtil.getSessionFactory();
-
-
-
-
-            TelegramBotsApi telegramBotsApi = new TelegramBotsApi(DefaultBotSession.class);
-
-            MyAmazingBot bot = MyAmazingBot.getInstance();
-            telegramBotsApi.registerBot(bot);
-            bot.initializeCommands();
-            System.out.println("MyAmazingBot successfully started!");
-
-            // Ensure this prcess wait forever
-            Thread.currentThread().join();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+        SpringApplication.run(Main.class, args);
     }
 }

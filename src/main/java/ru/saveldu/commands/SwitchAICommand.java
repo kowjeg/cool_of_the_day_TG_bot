@@ -1,33 +1,37 @@
 package ru.saveldu.commands;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.saveldu.MultiSessionTelegramBot;
-import ru.saveldu.MyAmazingBot;
 import ru.saveldu.enums.ChatApiType;
+import ru.saveldu.services.MessageService;
 
-import java.sql.SQLException;
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class SwitchAICommand implements CommandHandler {
 
-public class SwitchAICommand implements CommandHandler{
+    private final MessageService messageService;
+    private final AiChatHandler aiChatHandler;
 
-    private final MultiSessionTelegramBot bot  = MyAmazingBot.getInstance();
-    private static final Logger logger = LoggerFactory.getLogger(SwitchAICommand.class);
     @Override
-    public void execute(Update update) throws SQLException {
-        if(isUserAdmin(update.getMessage().getFrom().getId())) {
-            ChatApiType newApiType = AiChatHandler.switchApi();
+    public void execute(Update update) {
+        if (isUserAdmin(update.getMessage().getFrom().getId())) {
+            ChatApiType newApiType = aiChatHandler.switchApi();
             String newApiTypeString = newApiType.toString();
-            bot.sendMessage(update.getMessage().getChatId(), "new API: " + newApiTypeString);
-            logger.info("switch API: " + newApiTypeString);
-
+            messageService.sendMessage(update.getMessage().getChatId(), "New API: " + newApiTypeString);
+            log.info("Switched API: " + newApiTypeString);
         } else {
-            bot.sendMessage(update.getMessage().getChatId(), "You are not admin");
+            messageService.sendMessage(update.getMessage().getChatId(), "You are not an admin.");
         }
-
+    }
+    @Override
+    public String getName() {
+        return "aiswitch";
     }
 
-    private boolean isUserAdmin(long usedId) {
-        return usedId == 128697674;
+    private boolean isUserAdmin(long userId) {
+        return userId == 128697674;
     }
 }

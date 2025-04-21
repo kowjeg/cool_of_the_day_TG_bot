@@ -10,17 +10,6 @@
         <appender-ref ref="FILE" />
     </logger>
 
-    <!-- Логи P6Spy -->
-    <logger name="com.p6spy" level="DEBUG" additivity="false">
-        <appender-ref ref="CONSOLE" />
-        <appender-ref ref="FILE" />
-    </logger>
-
-
-    <logger name="com.p6spy" level="DEBUG" additivity="false">
-        <appender-ref ref="CONSOLE" />
-        <appender-ref ref="FILE" />
-    </logger>
 
     <!-- Логи в консоль -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">

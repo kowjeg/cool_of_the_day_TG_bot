@@ -1,34 +1,38 @@
 package ru.saveldu.commands;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.saveldu.MultiSessionTelegramBot;
-import ru.saveldu.MyAmazingBot;
-import ru.saveldu.enums.ChatApiType;
+import ru.saveldu.services.MessageService;
 
-import java.io.IOException;
-import java.sql.SQLException;
 
+
+@Component
+@RequiredArgsConstructor
+@Slf4j
 public class SummaryCommandSwitcher implements CommandHandler{
 
-    private final MultiSessionTelegramBot bot  = MyAmazingBot.getInstance();
-    private static final Logger logger = LoggerFactory.getLogger(SummaryCommandSwitcher.class);
+    private final MessageService messageService;
 
-    public void execute(Update update) throws SQLException {
+    public void execute(Update update)  {
         if(isUserAdmin(update.getMessage().getFrom().getId())) {
             if (SummaryCommandHandler.isActive()) {
                 SummaryCommandHandler.setIsActive(false);
             } else {
                 SummaryCommandHandler.setIsActive(true);
             }
-            bot.sendMessage(update.getMessage().getChatId(), "Суммаризация переключена, текущий статус: " + SummaryCommandHandler.isActive());
-            logger.info("Суммаризация переключена, текущий статус: " + SummaryCommandHandler.isActive());
+            messageService.sendMessage(update.getMessage().getChatId(), "Суммаризация переключена, текущий статус: " + SummaryCommandHandler.isActive());
+            log.info("Суммаризация переключена, текущий статус: " + SummaryCommandHandler.isActive());
 
         } else {
-            bot.sendMessage(update.getMessage().getChatId(), "You are not admin");
+            messageService.sendMessage(update.getMessage().getChatId(), "You are not admin");
         }
+    }
 
+    @Override
+    public String getName() {
+        return "summaryswitch";
     }
 
     private boolean isUserAdmin(long usedId) {

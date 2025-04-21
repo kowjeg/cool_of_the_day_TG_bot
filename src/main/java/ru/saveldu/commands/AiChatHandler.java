@@ -1,70 +1,60 @@
 package ru.saveldu.commands;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.saveldu.MultiSessionTelegramBot;
-import ru.saveldu.MyAmazingBot;
 import ru.saveldu.api.ChatApi;
-import ru.saveldu.api.DeepSeekApi;
 import ru.saveldu.enums.ChatApiType;
+import ru.saveldu.services.MessageService;
 
-public class AiChatHandler implements CommandHandler{
-    private static final Logger logger = LoggerFactory.getLogger(AiChatHandler.class);
+@Component
+@Slf4j
+public class AiChatHandler implements CommandHandler {
 
-    private static ChatApi chatApi;
-    private final MultiSessionTelegramBot bot;
-    private static ChatApiType currentApi;
+    private final ChatApi gigaChatApi;
+    private final ChatApi deepSeekApi;
+    private final MessageService messageService;
+    private ChatApiType currentApi = ChatApiType.DEEPSEEK;
 
-    public AiChatHandler(ChatApiType apiType) throws Exception {
-        this.bot = MyAmazingBot.getInstance();
-        currentApi = apiType;
-        this.chatApi = createChatApi(apiType);
+    @Autowired
+    public AiChatHandler(
+            @Qualifier("gigaChatApi") ChatApi gigaChatApi,
+            @Qualifier("deepSeekApi") ChatApi deepSeekApi,
+            MessageService messageService
+    ) {
+        this.gigaChatApi = gigaChatApi;
+        this.deepSeekApi = deepSeekApi;
+        this.messageService = messageService;
     }
 
-    public static ChatApiType switchApi() {
-        try {
-            logger.info("current api type: " + currentApi);
-            if (currentApi == ChatApiType.GIGACHAT) {
-                currentApi = ChatApiType.DEEPSEEK;
-            } else {
-                currentApi = ChatApiType.GIGACHAT;
-            }
-            chatApi = createChatApi(currentApi);
-            logger.info("Switched API to: {}", currentApi);
-        } catch (Exception e) {
-            logger.error("Error switching API: {}", e.getMessage(), e);
-        }
+    private ChatApi getCurrentChatApi() {
+        return currentApi == ChatApiType.GIGACHAT ? gigaChatApi : deepSeekApi;
+    }
+
+    public ChatApiType switchApi() {
+        log.info("Current API type: {}", currentApi);
+        currentApi = currentApi == ChatApiType.GIGACHAT ? ChatApiType.DEEPSEEK : ChatApiType.GIGACHAT;
+        log.info("Switched API to: {}", currentApi);
         return currentApi;
-    }
-
-    private static ChatApi createChatApi(ChatApiType apiType) throws Exception {
-        switch (apiType) {
-            case GIGACHAT:
-                logger.info("Creating Gigachat API");
-                return new ru.saveldu.api.GigaChatApi();
-            case DEEPSEEK:
-                logger.info("Creating DeepSeek API");
-                return new DeepSeekApi();
-            default:
-                throw new IllegalArgumentException("Unsupported ChatApiType: " + apiType);
-        }
     }
 
     @Override
     public void execute(Update update) {
         long chatId = update.getMessage().getChatId();
-
         try {
-
-            String response = chatApi.sendTextRequest(String.valueOf(chatId), update);
-            bot.sendReplyMessage(chatId, response, update.getMessage().getMessageId());
+            String response = getCurrentChatApi().sendTextRequest(String.valueOf(chatId), update);
+            messageService.sendReplyMessage(chatId, response, update.getMessage().getMessageId());
         } catch (Exception e) {
-            logger.error("Error processing chat request: {}", e.getMessage(), e);
-            bot.sendMessage(chatId, "Нет настроения общаться. Весеннее обострение.");
+            log.error("Error processing chat request: {}", e.getMessage(), e);
+            messageService.sendMessage(chatId, "Нет настроения общаться. Весеннее обострение.");
         }
     }
 
-
-
+    @Override
+    public String getName() {
+        return "aichat";
+    }
 }
