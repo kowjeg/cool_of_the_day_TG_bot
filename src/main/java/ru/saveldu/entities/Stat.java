@@ -10,6 +10,7 @@ import lombok.*;
 @Data
 @Entity
 @Table(name = "stats")
+@AllArgsConstructor
 public class Stat {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
