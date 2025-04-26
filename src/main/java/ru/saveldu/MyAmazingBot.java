@@ -8,6 +8,7 @@ import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsume
 import org.telegram.telegrambots.longpolling.starter.SpringLongPollingBot;
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
 import ru.saveldu.commands.AiChatHandler;
 import ru.saveldu.commands.CommandHandler;
@@ -15,6 +16,7 @@ import ru.saveldu.commands.SummaryCommandHandler;
 import ru.saveldu.services.MessageService;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -58,7 +60,7 @@ public class MyAmazingBot implements SpringLongPollingBot, LongPollingSingleThre
             if (!messageText.startsWith("/")) {
                 summaryCommandHandler.addMessage(update);
                 // if reply to bot message - execute on deepseek
-                System.out.println(message.getReplyToMessage().getFrom().getUserName());
+
                 if (message.isReply() && message.getReplyToMessage().getFrom().getUserName().equalsIgnoreCase(System.getenv("BOT_USERNAME"))) {
                     aiChatHandler.execute(update);
                 }
@@ -66,11 +68,11 @@ public class MyAmazingBot implements SpringLongPollingBot, LongPollingSingleThre
                 return;
             }
 
-            String[] parts = messageText.split(" ", 2); // ["/play@buzzcatbot"]
-            String rawCommand = parts[0]; // "/play@buzzcatbot"
+            String[] parts = messageText.split(" ", 2); // ["/play@namebot"]
+            String rawCommand = parts[0]; //
             String[] commandParts = rawCommand.split("@");
 
-            String command = commandParts[0]; // "/play"
+            String command = commandParts[0]; // "/command"
             String mentionedBot = (commandParts.length > 1) ? commandParts[1] : null;
 
             if (!isPrivateChat) {

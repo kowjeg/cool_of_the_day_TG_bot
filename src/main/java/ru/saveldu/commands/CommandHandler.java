@@ -6,6 +6,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 public interface CommandHandler {
-    void execute(Update update) throws SQLException, IOException;
+    void execute(Update update) throws IOException, SQLException;
     String getName();
 }

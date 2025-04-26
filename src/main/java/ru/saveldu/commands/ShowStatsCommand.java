@@ -26,18 +26,16 @@ public class ShowStatsCommand implements CommandHandler {
     @Override
     @Transactional
     public void execute(Update update) throws SQLException {
-        if (update.getMessage() == null) {
-            log.warn("Update without message received: {}", update);
-            return;
-        }
         long chatId = update.getMessage().getChatId();
-        LocalDate today = LocalDate.now();
-        int currentYear = today.getYear();
+        int currentYear = LocalDate.now().getYear();
+
         List<Stat> statsList = statRepository.findByChatIdAndYear(chatId,currentYear);
+
         StringBuilder statMessage = new StringBuilder(BotMessages.STATS_HEADER.format(String.valueOf(currentYear))).append("\n");
         for (Stat s : statsList) {
             statMessage.append(s.getUserName()).append(" - ").append(s.getCountWins()).append(" раз\n");
         }
+
         messageService.sendMessage(chatId, statMessage.toString());
     }
     @Override
