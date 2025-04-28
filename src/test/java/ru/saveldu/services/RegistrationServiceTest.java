@@ -35,7 +35,7 @@
 
             when(userRepository.save(any(User.class))).thenReturn(savedUser);
 
-            registrationService.registerUser(2L, 1L, "Tester");
+            User resultUser = registrationService.registerUser(2L, 1L, "Tester");
 
             ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
             verify(userRepository).save(captor.capture());
@@ -43,6 +43,8 @@
             assertEquals(2L, passedUser.getUserId());
             assertEquals(1L, passedUser.getChatId());
             assertEquals("Tester", passedUser.getUserName());
+
+            assertEquals(savedUser, resultUser);
 
         }
 
