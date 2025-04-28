@@ -61,7 +61,7 @@ public class MessageServiceImpl implements MessageService {
         }
     }
 
-    public String formatUserMention(String usName, long userId) {
+    public String formatUserMention(String firstName, long userId) {
         // Проверяем, есть ли у победителя юзернейм
         String userName = getUserNameById(userId);
         if (userName != null) {
@@ -69,7 +69,7 @@ public class MessageServiceImpl implements MessageService {
             return "@" + userName;
         }
 
-        return "[" + usName + "](tg://user?id=" + userId + ")";
+        return "[" + firstName + "](tg://user?id=" + userId + ")";
     }
 
     private String getUserNameById(long userId) {
