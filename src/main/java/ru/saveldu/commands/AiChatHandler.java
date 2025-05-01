@@ -30,15 +30,16 @@ public class AiChatHandler implements CommandHandler {
         this.messageService = messageService;
     }
 
-    private ChatApi getCurrentChatApi() {
+    public ChatApi getCurrentChatApi() {
         return currentApi == ChatApiType.GIGACHAT ? gigaChatApi : deepSeekApi;
     }
 
     public ChatApiType switchApi() {
         log.info("Current API type: {}", currentApi);
-        currentApi = currentApi == ChatApiType.GIGACHAT ? ChatApiType.DEEPSEEK : ChatApiType.GIGACHAT;
+        ChatApiType newApiType = currentApi == ChatApiType.GIGACHAT ? ChatApiType.DEEPSEEK : ChatApiType.GIGACHAT;
+        currentApi = newApiType;
         log.info("Switched API to: {}", currentApi);
-        return currentApi;
+        return newApiType;
     }
 
     @Override
