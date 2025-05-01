@@ -3,6 +3,7 @@ package ru.saveldu.entities;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -17,6 +18,7 @@ import java.time.LocalDate;
 @Data
 @Entity
 @Table(name = "users")
+@AllArgsConstructor
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,6 +48,7 @@ public class User {
     private LocalDate lastPlayedDate;
 
 
+    public User() {
 
-
+    }
 }

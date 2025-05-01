@@ -1,6 +1,7 @@
 package ru.saveldu.commands;
 
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -36,15 +37,19 @@ public class CombStatsCommand implements CommandHandler {
 
         for (User u : combSizesList) {
 
-            StringBuilder userNameActual = new StringBuilder(u.getUserName());
-            if (userNameActual.length() > MAX_LENGTH_USERNAME) {
-                userNameActual = new StringBuilder(userNameActual.substring(0, MAX_LENGTH_USERNAME)).append("...");
-
-            }
-            stringBuilder.append(String.format(BotMessages.COMB_STATS_FORMAT.format(), userNameActual, u.getCombSize()));
+            String userNameFormatted = truncateUserName(u.getUserName());
+            stringBuilder.append(String.format(BotMessages.COMB_STATS_FORMAT.format(), userNameFormatted, u.getCombSize()));
         }
         stringBuilder.append("`");
         messageService.sendMessage(chatId, stringBuilder.toString());
+    }
+
+    @NotNull
+    private String truncateUserName(String userName) {
+        if (userName.length() > MAX_LENGTH_USERNAME) {
+            return userName.substring(0, MAX_LENGTH_USERNAME) + "...";
+        }
+        return userName;
     }
 
     public String getName() {
