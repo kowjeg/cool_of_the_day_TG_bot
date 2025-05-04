@@ -5,7 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.saveldu.entities.User;
+import ru.saveldu.entities.Users;
 import ru.saveldu.enums.BotMessages;
 import ru.saveldu.repositories.UserRepository;
 import ru.saveldu.services.MessageService;
@@ -26,7 +26,7 @@ public class CombStatsCommand implements CommandHandler {
         StringBuilder stringBuilder = new StringBuilder();
 
         //top 10 request
-        List<User> combSizesList = userRepository.findTop10ByChatIdAndCombSizeIsNotNullOrderByCombSizeDesc(chatId);
+        List<Users> combSizesList = userRepository.findTop10ByChatIdAndCombSizeIsNotNullOrderByCombSizeDesc(chatId);
 
         if (combSizesList.isEmpty()) {
             return;
@@ -35,7 +35,7 @@ public class CombStatsCommand implements CommandHandler {
         stringBuilder.append(String.format(BotMessages.COMB_STATS_FORMAT.format(), "Фолофан", "Размер (см)"));
         stringBuilder.append(BotMessages.COMB_STATS_SEPARATOR.format());
 
-        for (User u : combSizesList) {
+        for (Users u : combSizesList) {
 
             String userNameFormatted = truncateUserName(u.getUserName());
             stringBuilder.append(String.format(BotMessages.COMB_STATS_FORMAT.format(), userNameFormatted, u.getCombSize()));

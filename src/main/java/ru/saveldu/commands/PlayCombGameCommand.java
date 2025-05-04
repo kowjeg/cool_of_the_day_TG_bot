@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.saveldu.entities.User;
+import ru.saveldu.entities.Users;
 import ru.saveldu.enums.BotMessages;
 import ru.saveldu.repositories.UserRepository;
 import ru.saveldu.services.MessageService;
@@ -24,6 +24,13 @@ public class PlayCombGameCommand implements CommandHandler {
     private final MessageService messageService;
     private final UserRepository userRepository;
 
+    private Random random = new Random();
+
+
+    public void setRandom(Random random) {
+        this.random = random;
+    }
+
     @Override
     @Transactional
     public void execute(Update update) {
@@ -33,7 +40,7 @@ public class PlayCombGameCommand implements CommandHandler {
         String userName = update.getMessage().getFrom().getFirstName();
         String userNameToString = messageService.formatUserMention(userName, userId);
 
-        User user = getOrCreateUser(chatId, userId, userName);
+        Users user = getOrCreateUser(chatId, userId, userName);
 
         LocalDate lastPlayed = user.getLastPlayedDate();
         if (lastPlayed != null && lastPlayed.equals(today)) {
@@ -45,37 +52,38 @@ public class PlayCombGameCommand implements CommandHandler {
             user.setCombSize(0);
         }
 
-        Random rand = new Random();
-        int deltaSize = rand.nextInt(MAX_COMB_CHANGE_SIZE - MIN_COMB_CHANGE_SIZE + 1) + MIN_COMB_CHANGE_SIZE;
+
+        int deltaSize = random.nextInt(MAX_COMB_CHANGE_SIZE - MIN_COMB_CHANGE_SIZE + 1) + MIN_COMB_CHANGE_SIZE;
         int newCombSize = user.getCombSize() + deltaSize;
         user.setCombSize(newCombSize);
         user.setLastPlayedDate(today);
 
         userRepository.save(user);
 
-        List<User> users = userRepository.findByChatIdOrderByCombSizeDesc(chatId);
+        List<Users> users = userRepository.findByChatIdOrderByCombSizeDesc(chatId);
 
         int rank = calculateUserRank(users, userId);
         sendMessageBasedOnDelta(rank, deltaSize, chatId, userNameToString, newCombSize);
     }
 
-    private User getOrCreateUser(long chatId, long userId, String userName) {
-        Optional<User> optionalUser = userRepository.findByChatIdAndUserId(chatId, userId);
+    private Users getOrCreateUser(long chatId, long userId, String userName) {
+        Optional<Users> optionalUser = userRepository.findByChatIdAndUserId(chatId, userId);
         if (optionalUser.isPresent()) {
             return optionalUser.get();
         } else {
-            User newUser = new User();
+            Users newUser = new Users();
             newUser.setUserId(userId);
             newUser.setChatId(chatId);
+
             newUser.setUserName(userName);
             newUser.setCombSize(0);
             return userRepository.save(newUser);
         }
     }
 
-    private static int calculateUserRank(List<User> users, long userId) {
+    static int calculateUserRank(List<Users> users, long userId) {
         int rank = 1;
-        for (User u : users) {
+        for (Users u : users) {
             if (u.getUserId() == userId) {
                 break;
             }

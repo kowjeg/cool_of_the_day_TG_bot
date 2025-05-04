@@ -7,7 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
-import ru.saveldu.entities.User;
+import ru.saveldu.entities.Users;
 import ru.saveldu.enums.BotMessages;
 import ru.saveldu.exceptions.COTDAlreadyChosen;
 import ru.saveldu.exceptions.NoUserInChat;
@@ -16,7 +16,6 @@ import ru.saveldu.services.MessageService;
 
 import java.time.LocalDate;
 
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 
@@ -41,7 +40,7 @@ class CoolOfTheDayCommandTest {
         Message message = mock(Message.class);
 
         long chatId = 1L;
-        User user = new User(1, chatId, 1L, "Boris", 5, LocalDate.now());
+        Users user = new Users(1, chatId, 1L, "Boris", 5, LocalDate.now());
 
 
         when(update.getMessage()).thenReturn(message);

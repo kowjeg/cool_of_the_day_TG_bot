@@ -6,7 +6,7 @@
     import org.mockito.InjectMocks;
     import org.mockito.Mock;
     import org.mockito.junit.jupiter.MockitoExtension;
-    import ru.saveldu.entities.User;
+    import ru.saveldu.entities.Users;
     import ru.saveldu.repositories.UserRepository;
 
     import java.util.Optional;
@@ -28,18 +28,18 @@
 
         @Test
         void registerUser_savesUserAndReturnIt() {
-            User savedUser = new User();
+            Users savedUser = new Users();
             savedUser.setUserId(2L);
             savedUser.setChatId(1L);
             savedUser.setUserName("Tester");
 
-            when(userRepository.save(any(User.class))).thenReturn(savedUser);
+            when(userRepository.save(any(Users.class))).thenReturn(savedUser);
 
-            User resultUser = registrationService.registerUser(2L, 1L, "Tester");
+            Users resultUser = registrationService.registerUser(2L, 1L, "Tester");
 
-            ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+            ArgumentCaptor<Users> captor = ArgumentCaptor.forClass(Users.class);
             verify(userRepository).save(captor.capture());
-            User passedUser = captor.getValue();
+            Users passedUser = captor.getValue();
             assertEquals(2L, passedUser.getUserId());
             assertEquals(1L, passedUser.getChatId());
             assertEquals("Tester", passedUser.getUserName());
@@ -50,7 +50,7 @@
 
         @Test
         void isUserAlreadyRegistered_whenPresent_returnsTrue() {
-            when(userRepository.findByChatIdAndUserId(1L, 2L)).thenReturn(Optional.of(new User()));
+            when(userRepository.findByChatIdAndUserId(1L, 2L)).thenReturn(Optional.of(new Users()));
             assertTrue(registrationService.isUserAlreadyRegistered(2L, 1L));
         }
 

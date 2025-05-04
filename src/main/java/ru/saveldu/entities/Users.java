@@ -19,7 +19,7 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "users")
 @AllArgsConstructor
-public class User {
+public class Users {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", nullable = false)
@@ -48,7 +48,7 @@ public class User {
     private LocalDate lastPlayedDate;
 
 
-    public User() {
+    public Users() {
 
     }
 }

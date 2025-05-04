@@ -3,7 +3,7 @@ package ru.saveldu.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.saveldu.entities.User;
+import ru.saveldu.entities.Users;
 import ru.saveldu.repositories.UserRepository;
 
 @Service
@@ -16,8 +16,8 @@ public class RegistrationService {
         return userRepository.findByChatIdAndUserId(chatId, userId).isPresent();
     }
 
-    public User registerUser(long userId, long chatId, String userName) {
-        User newUser = new User();
+    public Users registerUser(long userId, long chatId, String userName) {
+        Users newUser = new Users();
         newUser.setUserId(userId);
         newUser.setChatId(chatId);
         newUser.setUserName(userName);

@@ -6,10 +6,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.saveldu.entities.CoolOfTheDay;
 import ru.saveldu.entities.Stat;
-import ru.saveldu.entities.User;
+import ru.saveldu.entities.Users;
 import ru.saveldu.enums.BotMessages;
 import ru.saveldu.exceptions.COTDAlreadyChosen;
-import ru.saveldu.exceptions.FoloBotException;
 import ru.saveldu.exceptions.NoUserInChat;
 import ru.saveldu.repositories.CoolOfTheDayRepository;
 import ru.saveldu.repositories.StatRepository;
@@ -30,7 +29,7 @@ public class CoolOfTheDayService {
     private final UserRepository userRepository;
 
     @Transactional
-    public User chooseCoolOfTheDay(long chatId) {
+    public Users chooseCoolOfTheDay(long chatId) {
         LocalDate today = LocalDate.now();
 
         Optional<CoolOfTheDay> coolOfTheDayOpt = coolOfTheDayRepository.findByChatIdAndDate(chatId, today);
@@ -39,14 +38,14 @@ public class CoolOfTheDayService {
             throw new COTDAlreadyChosen(BotMessages.COOL_DAY_ALREADY_CHOSEN.format(winnerName));
         }
 
-        List<User> usersInChat = userRepository.getUsersByChatId(chatId);
+        List<Users> usersInChat = userRepository.getUsersByChatId(chatId);
         if (usersInChat.isEmpty()) {
             throw new NoUserInChat(BotMessages.NO_USER_IN_CHAT.format());
         }
 
         Random random = new Random();
         int winnerIndex = random.nextInt(usersInChat.size());
-        User winner = usersInChat.get(winnerIndex);
+        Users winner = usersInChat.get(winnerIndex);
 
         CoolOfTheDay coolOfTheDay = new CoolOfTheDay();
         coolOfTheDay.setDate(today);
@@ -60,7 +59,7 @@ public class CoolOfTheDayService {
         return winner;
     }
 
-    private void updateStats(long chatId, User winner, int year) {
+    private void updateStats(long chatId, Users winner, int year) {
         Optional<Stat> existingStatLine = statRepository.findByChatIdAndUserIdAndYear(chatId, winner.getUserId(), year);
 
         if (existingStatLine.isPresent()) {

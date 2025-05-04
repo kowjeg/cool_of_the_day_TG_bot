@@ -1,14 +1,12 @@
 package ru.saveldu.services;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.saveldu.entities.CoolOfTheDay;
 import ru.saveldu.entities.Stat;
-import ru.saveldu.entities.User;
-import ru.saveldu.enums.BotMessages;
+import ru.saveldu.entities.Users;
 import ru.saveldu.exceptions.COTDAlreadyChosen;
 import ru.saveldu.exceptions.NoUserInChat;
 import ru.saveldu.repositories.CoolOfTheDayRepository;
@@ -58,7 +56,7 @@ class CoolOfTheDayServiceTest {
     void choose_Winner_First_Time_New_Stats_Line() {
         long chatId = 123L;
         LocalDate today = LocalDate.now();
-        User user = new User();
+        Users user = new Users();
         user.setUserId(1L);
         user.setUserName("FirstTimeWinner");
         user.setChatId(chatId);
@@ -67,7 +65,7 @@ class CoolOfTheDayServiceTest {
         when(userRepository.getUsersByChatId(chatId)).thenReturn(List.of(user));
         when(statRepository.findByChatIdAndUserIdAndYear(chatId, user.getUserId(), today.getYear())).thenReturn(Optional.empty());
 
-        User winner = service.chooseCoolOfTheDay(chatId);
+        Users winner = service.chooseCoolOfTheDay(chatId);
 
         assertEquals(user, winner);
         verify(coolOfTheDayRepository).save(any(CoolOfTheDay.class));
@@ -81,7 +79,7 @@ class CoolOfTheDayServiceTest {
     void choose_Winner_Existing_Stat_Line() {
         long chatId = 123L;
         LocalDate today = LocalDate.now();
-        User user = new User();
+        Users user = new Users();
         user.setUserId(1L);
         user.setUserName("AlreadyWinsUser");
         user.setChatId(chatId);
@@ -97,7 +95,7 @@ class CoolOfTheDayServiceTest {
         when(userRepository.getUsersByChatId(chatId)).thenReturn(List.of(user));
         when(statRepository.findByChatIdAndUserIdAndYear(chatId, user.getUserId(), today.getYear())).thenReturn(Optional.of(stat));
 
-        User winner = service.chooseCoolOfTheDay(chatId);
+        Users winner = service.chooseCoolOfTheDay(chatId);
 
         assertEquals(user, winner);
 
@@ -108,12 +106,12 @@ class CoolOfTheDayServiceTest {
     void random_Winner_From_Multiple_Users() {
         long chatId = 123L;
         LocalDate today = LocalDate.now();
-        User user1 = new User();
+        Users user1 = new Users();
         user1.setUserId(1L);
         user1.setUserName("User1");
         user1.setChatId(chatId);
 
-        User user2 = new User();
+        Users user2 = new Users();
         user2.setUserId(2L);
         user2.setUserName("User2");
         user2.setChatId(chatId);
@@ -123,7 +121,7 @@ class CoolOfTheDayServiceTest {
         when(statRepository.findByChatIdAndUserIdAndYear(anyLong(), anyLong(), anyInt())).thenReturn(Optional.empty());
 
 
-        User winner = service.chooseCoolOfTheDay(chatId);
+        Users winner = service.chooseCoolOfTheDay(chatId);
 
         assertTrue(List.of(user1, user2).contains(winner));
 

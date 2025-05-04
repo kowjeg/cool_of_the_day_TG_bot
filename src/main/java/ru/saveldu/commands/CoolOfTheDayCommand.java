@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.saveldu.entities.User;
+import ru.saveldu.entities.Users;
 import ru.saveldu.exceptions.COTDAlreadyChosen;
 import ru.saveldu.exceptions.NoUserInChat;
 import ru.saveldu.services.CoolOfTheDayService;
@@ -24,7 +24,7 @@ public class CoolOfTheDayCommand implements CommandHandler {
         long chatId = update.getMessage().getChatId();
 
         try {
-            User winner = coolOfTheDayService.chooseCoolOfTheDay(chatId);
+            Users winner = coolOfTheDayService.chooseCoolOfTheDay(chatId);
             messageService.sendCoolOfTheDayResult(chatId, winner.getUserName(), winner.getUserId());
         } catch (COTDAlreadyChosen e) {
             messageService.sendMessage(chatId, e.getMessage());

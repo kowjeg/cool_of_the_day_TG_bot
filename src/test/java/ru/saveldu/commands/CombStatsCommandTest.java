@@ -8,7 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.message.Message;
-import ru.saveldu.entities.User;
+import ru.saveldu.entities.Users;
 import ru.saveldu.repositories.UserRepository;
 import ru.saveldu.services.MessageService;
 
@@ -41,9 +41,9 @@ class CombStatsCommandTest {
         when(update.getMessage()).thenReturn(message);
         when(message.getChatId()).thenReturn(chatId);
 
-        List<User> combSizesList = List.of(
-                new User(1,chatId, 1L, "Alex", 3, LocalDate.now()),
-                new User(2,chatId, 2L, "Henry", 4, LocalDate.now())
+        List<Users> combSizesList = List.of(
+                new Users(1,chatId, 1L, "Alex", 3, LocalDate.now()),
+                new Users(2,chatId, 2L, "Henry", 4, LocalDate.now())
 
         );
         when(userRepository.findTop10ByChatIdAndCombSizeIsNotNullOrderByCombSizeDesc(chatId)).thenReturn(combSizesList);
@@ -69,7 +69,7 @@ class CombStatsCommandTest {
         when(update.getMessage()).thenReturn(message);
         when(message.getChatId()).thenReturn(1L);
 
-        User user = new User();
+        Users user = new Users();
         user.setUserName("superlongusername420420420");
 
         when(userRepository.findTop10ByChatIdAndCombSizeIsNotNullOrderByCombSizeDesc(1L))
