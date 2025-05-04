@@ -1,6 +1,7 @@
 spring:
   application:
     name: tg-cooloftheday
+
   datasource:
     url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}
     password: ${DB_PASS}
@@ -8,3 +9,6 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     show-sql: true
+bot:
+  token: ${BOT_TOKEN}
+  username: ${BOT_USERNAME}

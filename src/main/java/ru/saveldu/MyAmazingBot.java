@@ -1,8 +1,7 @@
 package ru.saveldu;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.longpolling.interfaces.LongPollingUpdateConsumer;
 import org.telegram.telegrambots.longpolling.starter.SpringLongPollingBot;
@@ -14,6 +13,7 @@ import ru.saveldu.commands.AiChatHandler;
 import ru.saveldu.commands.CommandHandler;
 import ru.saveldu.commands.SummaryCommandHandler;
 import ru.saveldu.services.MessageService;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -22,28 +22,59 @@ import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-@RequiredArgsConstructor
 public class MyAmazingBot implements SpringLongPollingBot, LongPollingSingleThreadUpdateConsumer {
-    private Map<String, CommandHandler> commands;
+    private final String botToken;
+    private final String botUsername;
     private final MessageService messageService;
     private final SummaryCommandHandler summaryCommandHandler;
     private final AiChatHandler aiChatHandler;
+    private final Map<String, CommandHandler> commands;
 
-    @Autowired
-    public void setCommands(List<CommandHandler> commandHandlers) {
-        this.commands = commandHandlers.stream()
+
+    public MyAmazingBot(@Value("${bot.token}") String botToken,
+                        @Value("${bot.username}") String botUsername,
+                        List<CommandHandler> handlers,
+                        MessageService messageService,
+                        SummaryCommandHandler summaryCommandHandler,
+                        AiChatHandler aiChatHandler) {
+        this.botToken = botToken;               // <-- и сюда
+        this.botUsername = botUsername;
+        this.commands = handlers.stream()
                 .collect(Collectors.toMap(handler -> "/" + handler.getName().toLowerCase(),
                         Function.identity()));
+        this.messageService = messageService;
+        this.summaryCommandHandler = summaryCommandHandler;
+        this.aiChatHandler = aiChatHandler;
     }
 
     @Override
     public String getBotToken() {
-        return System.getenv("BOT_TOKEN");
+        return botToken;
     }
 
     @Override
     public LongPollingUpdateConsumer getUpdatesConsumer() {
         return this;
+    }
+
+    private boolean isReplyToBot(Message message) {
+
+        return Optional.ofNullable(message.getReplyToMessage())
+                .map(Message::getFrom)
+                .map(User::getUserName)
+                .filter(userName -> userName.equalsIgnoreCase(botUsername))
+                .isPresent();
+    }
+
+    private String[] parseCommand(String text) {
+
+        String raw = text.split(" ", 2)[0];
+        String[] parts = raw.split("@", 2);
+        String name = parts[0].toLowerCase();
+        String mentioned = parts.length > 1
+                ? parts[1]
+                : null;
+        return new String[]{ name, mentioned };
     }
 
     @Override
@@ -54,38 +85,39 @@ public class MyAmazingBot implements SpringLongPollingBot, LongPollingSingleThre
         Message message = update.getMessage();
         String messageText = message.getText();
         Long chatId = message.getChatId();
-            boolean isPrivateChat = message.getChat().isUserChat(); // group or private chat
+        boolean isPrivateChat = Optional.ofNullable(message.getChat())
+                .map(c -> c.isUserChat())
+                .orElse(false);
+
         try {
 //            if no command - add to chat history
             if (!messageText.startsWith("/")) {
                 summaryCommandHandler.addMessage(update);
-                // if reply to bot message - execute on deepseek
 
-                if (message.isReply() && message.getReplyToMessage().getFrom().getUserName().equalsIgnoreCase(System.getenv("BOT_USERNAME"))) {
+                // if reply to bot message - execute on deepseek
+                if (isReplyToBot(message)) {
                     aiChatHandler.execute(update);
                 }
-
                 return;
             }
 
-            String[] parts = messageText.split(" ", 2); // ["/play@namebot"]
-            String rawCommand = parts[0]; //
-            String[] commandParts = rawCommand.split("@");
-
-            String command = commandParts[0]; // "/command"
-            String mentionedBot = (commandParts.length > 1) ? commandParts[1] : null;
+            String[] cmd = parseCommand(messageText);
+            String command = cmd[0];
+            String mentionedBot = cmd[1];
 
             if (!isPrivateChat) {
-                if (mentionedBot == null || !mentionedBot.equalsIgnoreCase(System.getenv("BOT_USERNAME"))) {
+                if (mentionedBot == null || !mentionedBot.equalsIgnoreCase(botUsername)) {
                     return;
                 }
             }
-            // Проверяем, есть ли такая команда в списке
+
             CommandHandler handler = commands.get(command);
             if (handler != null) {
                 handler.execute(update);
             } else {
-                log.warn("Неизвестная команда: {}", rawCommand);
+                log.warn("Unknown command '{}' from user {} in chat {}", command,
+                        message.getFrom().getId(), chatId);
+
                 messageService.sendMessage(chatId, "Неизвестная команда.");
             }
         } catch (Exception e) {

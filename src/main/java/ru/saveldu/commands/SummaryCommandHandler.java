@@ -41,6 +41,7 @@ public class SummaryCommandHandler implements CommandHandler {
         groupMessageHistory.computeIfAbsent(chatId, k -> new LinkedList<>());
         Deque<TextRequest.Message> messageQueue = groupMessageHistory.get(chatId);
         messageQueue.addLast(new TextRequest.Message("user", newMessage));
+        log.info(chatId + ": " + newMessage);
 
         if (messageQueue.size() > 1000) {
             messageQueue.removeFirst();
@@ -85,7 +86,7 @@ public class SummaryCommandHandler implements CommandHandler {
         contextWithPrompt.addAll(lastMessages);
 
         String answer = chatApi.apiRequestMethod(contextWithPrompt);
-        log.info("Суммаризация по " + messagesCount + " сообщениям в " + update.getMessage().getChat().getFirstName());
+        log.info("Суммаризация по " + messagesCount + " сообщениям в " + update.getMessage().getChat().getUserName());
 
         String responseMessage = "Суммаризация по " + messagesCount + " сообщениям:\n" + answer;
         messageService.sendMessage(update.getMessage().getChatId(), responseMessage);
