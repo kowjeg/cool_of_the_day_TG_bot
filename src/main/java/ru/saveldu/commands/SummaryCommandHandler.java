@@ -96,4 +96,8 @@ public class SummaryCommandHandler implements CommandHandler {
     public String getName() {
         return "summary";
     }
+
+    void clearHistory() {
+        groupMessageHistory.clear();
+    }
 }
