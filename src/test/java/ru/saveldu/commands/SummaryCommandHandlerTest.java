@@ -1,5 +1,7 @@
 package ru.saveldu.commands;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,6 +41,7 @@ class SummaryCommandHandlerTest {
 
     @BeforeEach
     void setUp() {
+        SummaryCommandHandler.setIsActive(true);
         command.clearHistory();
     }
 
@@ -97,7 +100,6 @@ class SummaryCommandHandlerTest {
                 .sendMessage(1L, "Ошибка: введите корректное число!");
 
     }
-
 
 }
 
