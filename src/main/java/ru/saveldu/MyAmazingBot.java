@@ -57,7 +57,7 @@ public class MyAmazingBot implements SpringLongPollingBot, LongPollingSingleThre
         return this;
     }
 
-    private boolean isReplyToBot(Message message) {
+    boolean isReplyToBot(Message message) {
 
         return Optional.ofNullable(message.getReplyToMessage())
                 .map(Message::getFrom)
@@ -66,7 +66,7 @@ public class MyAmazingBot implements SpringLongPollingBot, LongPollingSingleThre
                 .isPresent();
     }
 
-    private String[] parseCommand(String text) {
+    String[] parseCommand(String text) {
 
         String raw = text.split(" ", 2)[0];
         String[] parts = raw.split("@", 2);
