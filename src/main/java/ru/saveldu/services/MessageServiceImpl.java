@@ -6,10 +6,15 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChat;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.chat.Chat;
+import org.telegram.telegrambots.meta.api.objects.message.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.saveldu.enums.BotMessages;
+
+import java.io.InputStream;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +34,18 @@ public class MessageServiceImpl implements MessageService {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public Message sendPhoto(long chatId, SendPhoto photo) {
+
+        try {
+            return telegramClient.execute(photo);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+
 
     @Override
     public void sendCoolOfTheDayResult(long chatId, String winnerUserName, long winnerUserId) {

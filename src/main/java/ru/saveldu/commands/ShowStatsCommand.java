@@ -29,7 +29,7 @@ public class ShowStatsCommand implements CommandHandler {
         long chatId = update.getMessage().getChatId();
         int currentYear = LocalDate.now().getYear();
 
-        List<Stat> statsList = statRepository.findByChatIdAndYear(chatId,currentYear);
+        List<Stat> statsList = statRepository.findTop10ByChatIdAndYearOrderByCountWinsDesc(chatId,currentYear);
 
         StringBuilder statMessage = new StringBuilder(BotMessages.STATS_HEADER.format(String.valueOf(currentYear))).append("\n");
         for (Stat s : statsList) {

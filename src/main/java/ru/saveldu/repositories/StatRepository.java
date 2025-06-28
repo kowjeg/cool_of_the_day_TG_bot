@@ -14,4 +14,7 @@ public interface StatRepository extends JpaRepository<Stat,Long> {
     Optional<Stat> findByChatIdAndUserIdAndYear(long chatId, @NotNull Long userId, int year);
 
     List<Stat> findByChatIdAndYear(long chatId, int currentYear);
+
+    List<Stat> findTop10ByChatIdAndYearOrderByCountWinsDesc(@NotNull Long chatId, @NotNull Integer year);
+
 }
